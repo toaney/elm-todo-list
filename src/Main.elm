@@ -8,13 +8,18 @@ import Html
 -- MODEL
 
 
+type alias Task =
+    { name : String
+    }
+
+
 type alias Model =
-    Int
+    List Task
 
 
 init : Model
 init =
-    1
+    []
 
 
 
@@ -34,7 +39,7 @@ update msg model =
 
 
 view model =
-    Html.text ("Hello World! " ++ String.fromInt model)
+    Html.text "Hello World! "
 
 
 main =
