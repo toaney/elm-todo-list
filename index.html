@@ -5032,15 +5032,30 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $author$project$Main$init = {
-	newTaskDescription: '',
-	nextTaskId: 3,
-	tasks: _List_fromArray(
-		[
-			{description: 'clean room', id: 1},
-			{description: 'buy groceries', id: 2}
-		])
-};
+var $elm$core$Basics$add = _Basics_add;
+var $author$project$Main$addTask = F2(
+	function (description, model) {
+		return _Utils_update(
+			model,
+			{
+				nextTaskId: model.nextTaskId + 1,
+				tasks: A2(
+					$elm$core$List$cons,
+					{description: description, id: model.nextTaskId},
+					model.tasks)
+			});
+	});
+var $elm$core$Basics$apR = F2(
+	function (x, f) {
+		return f(x);
+	});
+var $author$project$Main$init = A2(
+	$author$project$Main$addTask,
+	'buy groceries',
+	A2(
+		$author$project$Main$addTask,
+		'clean room',
+		{newTaskDescription: '', nextTaskId: 1, tasks: _List_Nil}));
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5063,7 +5078,6 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var $elm$core$Basics$False = {$: 'False'};
-var $elm$core$Basics$add = _Basics_add;
 var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
@@ -5304,10 +5318,6 @@ var $elm$core$Array$Leaf = function (a) {
 };
 var $elm$core$Basics$apL = F2(
 	function (f, x) {
-		return f(x);
-	});
-var $elm$core$Basics$apR = F2(
-	function (x, f) {
 		return f(x);
 	});
 var $elm$core$Basics$eq = _Utils_equal;
@@ -10602,16 +10612,12 @@ var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'UserClickedAddTask':
-				return _Utils_update(
-					model,
-					{
-						newTaskDescription: '',
-						nextTaskId: model.nextTaskId + 1,
-						tasks: A2(
-							$elm$core$List$cons,
-							{description: model.newTaskDescription, id: model.nextTaskId},
-							model.tasks)
-					});
+				return A2(
+					$author$project$Main$addTask,
+					model.newTaskDescription,
+					_Utils_update(
+						model,
+						{newTaskDescription: ''}));
 			case 'UserEditedNewTaskDescription':
 				var newDescription = msg.a;
 				return _Utils_update(

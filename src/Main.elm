@@ -27,11 +27,11 @@ init : Model
 init =
     { newTaskDescription = ""
     , tasks =
-        [ { description = "clean room", id = 1 }
-        , { description = "buy groceries", id = 2 }
-        ]
-    , nextTaskId = 3
+        []
+    , nextTaskId = 1
     }
+        |> addTask "clean room"
+        |> addTask "buy groceries"
 
 
 
@@ -49,10 +49,9 @@ update msg model =
     case msg of
         UserClickedAddTask ->
             { model
-                | tasks = { id = model.nextTaskId, description = model.newTaskDescription } :: model.tasks
-                , newTaskDescription = ""
-                , nextTaskId = model.nextTaskId + 1
+                | newTaskDescription = ""
             }
+                |> addTask model.newTaskDescription
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
@@ -66,6 +65,14 @@ update msg model =
 deleteTask : Int -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
+
+
+addTask : String -> Model -> Model
+addTask description model =
+    { model
+        | tasks = { id = model.nextTaskId, description = description } :: model.tasks
+        , nextTaskId = model.nextTaskId + 1
+    }
 
 
 
