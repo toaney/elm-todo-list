@@ -38,6 +38,7 @@ init =
 type Msg
     = UserClickedAddTask
     | UserEditedNewTaskDescription String
+    | UserClickedDeleteTask
 
 
 update : Msg -> Model -> Model
@@ -51,6 +52,9 @@ update msg model =
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
+
+        UserClickedDeleteTask ->
+            model
 
 
 
@@ -75,7 +79,10 @@ newTaskView model =
 
 taskView : Task -> Html.Html Msg
 taskView task =
-    Html.div [] [ Html.text task.description ]
+    Html.div []
+        [ Html.text task.description
+        , Html.button [ HE.onClick UserClickedDeleteTask ] [ Html.text "delete" ]
+        ]
 
 
 main =
