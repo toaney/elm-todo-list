@@ -1,0 +1,16 @@
+{
+  "name": "elm-pairing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "elm-live": "^4.0.0-rc.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "elm-live": "elm-live src/Main.elm"
+  },
+  "author": "",
+  "license": "ISC"
+}
