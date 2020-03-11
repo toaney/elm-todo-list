@@ -5189,8 +5189,39 @@ var $author$project$Main$update = F2(
 		return model;
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Main$newTaskView = A2(
+	$elm$html$Html$div,
+	_List_Nil,
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$input,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$placeholder('type here')
+				]),
+			_List_Nil),
+			A2(
+			$elm$html$Html$button,
+			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$text('add')
+				]))
+		]));
 var $author$project$Main$taskView = function (task) {
 	return A2(
 		$elm$html$Html$div,
@@ -5204,7 +5235,10 @@ var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
-		A2($elm$core$List$map, $author$project$Main$taskView, model));
+		A2(
+			$elm$core$List$cons,
+			$author$project$Main$newTaskView,
+			A2($elm$core$List$map, $author$project$Main$taskView, model)));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});

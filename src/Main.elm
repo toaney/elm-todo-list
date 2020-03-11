@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html
+import Html.Attributes as HA
 
 
 
@@ -41,7 +42,17 @@ update msg model =
 
 
 view model =
-    Html.div [] (List.map taskView model)
+    Html.div []
+        (newTaskView
+            :: List.map taskView model
+        )
+
+
+newTaskView =
+    Html.div []
+        [ Html.input [ HA.placeholder "type here" ] []
+        , Html.button [] [ Html.text "add"]
+        ]
 
 
 taskView task =
