@@ -48,6 +48,11 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         UserClickedAddTask ->
+            -- {
+            --     newTaskDescription = ""
+            --     , nextTaskId = model.nextTaskId
+            --     , tasks = model.tasks
+            -- }
             { model
                 | newTaskDescription = ""
             }
