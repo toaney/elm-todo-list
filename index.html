@@ -10579,40 +10579,55 @@ var $elm$browser$Browser$sandbox = function (impl) {
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		return _Utils_update(
-			model,
-			{
-				tasks: A2(
-					$elm$core$List$cons,
-					{description: 'New Task'},
-					model.tasks)
-			});
+		if (msg.$ === 'UserClickedAddTask') {
+			return _Utils_update(
+				model,
+				{
+					newTaskDescription: '',
+					tasks: A2(
+						$elm$core$List$cons,
+						{description: model.newTaskDescription},
+						model.tasks)
+				});
+		} else {
+			var newDescription = msg.a;
+			return _Utils_update(
+				model,
+				{newTaskDescription: newDescription});
+		}
 	});
 var $author$project$Main$UserClickedAddTask = {$: 'UserClickedAddTask'};
+var $author$project$Main$UserEditedNewTaskDescription = function (a) {
+	return {$: 'UserEditedNewTaskDescription', a: a};
+};
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
-var $author$project$Main$newTaskView = A2(
-	$elm$html$Html$div,
-	_List_Nil,
-	_List_fromArray(
-		[
-			A2(
-			$elm$html$Html$input,
-			_List_fromArray(
-				[
-					$elm$html$Html$Attributes$placeholder('type here')
-				]),
-			_List_Nil),
-			A2(
-			$elm$html$Html$button,
-			_List_fromArray(
-				[
-					$elm$html$Html$Events$onClick($author$project$Main$UserClickedAddTask)
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text('add')
-				]))
-		]));
+var $author$project$Main$newTaskView = function (model) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$placeholder('type here'),
+						$elm$html$Html$Attributes$value(model.newTaskDescription),
+						$elm$html$Html$Events$onInput($author$project$Main$UserEditedNewTaskDescription)
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick($author$project$Main$UserClickedAddTask)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('add')
+					]))
+			]));
+};
 var $author$project$Main$taskView = function (task) {
 	return A2(
 		$elm$html$Html$div,
@@ -10628,13 +10643,13 @@ var $author$project$Main$view = function (model) {
 		_List_Nil,
 		A2(
 			$elm$core$List$cons,
-			$author$project$Main$newTaskView,
+			$author$project$Main$newTaskView(model),
 			A2($elm$core$List$map, $author$project$Main$taskView, model.tasks)));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskDescription":["String.String"]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }

@@ -37,10 +37,19 @@ init =
 
 type Msg
     = UserClickedAddTask
+    | UserEditedNewTaskDescription String
 
 
 update msg model =
-    { model | tasks = { description = "New Task" } :: model.tasks }
+    case msg of
+        UserClickedAddTask ->
+            { model
+                | tasks = { description = model.newTaskDescription } :: model.tasks
+                , newTaskDescription = ""
+            }
+
+        UserEditedNewTaskDescription newDescription ->
+            { model | newTaskDescription = newDescription }
 
 
 
@@ -49,14 +58,14 @@ update msg model =
 
 view model =
     Html.div []
-        (newTaskView
+        (newTaskView model
             :: List.map taskView model.tasks
         )
 
 
-newTaskView =
+newTaskView model =
     Html.div []
-        [ Html.input [ HA.placeholder "type here" ] []
+        [ Html.input [ HA.placeholder "type here", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
         , Html.button [ HE.onClick UserClickedAddTask ] [ Html.text "add" ]
         ]
 
