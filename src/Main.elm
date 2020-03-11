@@ -12,6 +12,7 @@ import Html.Events as HE
 
 type alias Task =
     { description : String
+    , id : Int
     }
 
 
@@ -25,8 +26,8 @@ init : Model
 init =
     { newTaskDescription = ""
     , tasks =
-        [ { description = "clean room" }
-        , { description = "buy groceries" }
+        [ { description = "clean room", id = 1 }
+        , { description = "buy groceries", id = 2 }
         ]
     }
 
@@ -38,7 +39,7 @@ init =
 type Msg
     = UserClickedAddTask
     | UserEditedNewTaskDescription String
-    | UserClickedDeleteTask
+    | UserClickedDeleteTask Int
 
 
 update : Msg -> Model -> Model
@@ -46,14 +47,14 @@ update msg model =
     case msg of
         UserClickedAddTask ->
             { model
-                | tasks = { description = model.newTaskDescription } :: model.tasks
+                | tasks = { id = 3, description = model.newTaskDescription } :: model.tasks
                 , newTaskDescription = ""
             }
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
 
-        UserClickedDeleteTask ->
+        UserClickedDeleteTask taskId ->
             model
 
 
@@ -81,7 +82,7 @@ taskView : Task -> Html.Html Msg
 taskView task =
     Html.div []
         [ Html.text task.description
-        , Html.button [ HE.onClick UserClickedDeleteTask ] [ Html.text "delete" ]
+        , Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
         ]
 
 
