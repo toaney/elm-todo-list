@@ -5038,6 +5038,16 @@ var $elm$core$Basics$identity = function (x) {
 var $author$project$Main$IdValue = function (a) {
 	return {$: 'IdValue', a: a};
 };
+var $author$project$Main$TaskDescriptionValue = function (a) {
+	return {$: 'TaskDescriptionValue', a: a};
+};
+var $author$project$Main$TaskNameValue = function (a) {
+	return {$: 'TaskNameValue', a: a};
+};
+var $author$project$Main$descriptionValue = function (_v0) {
+	var description = _v0.a;
+	return description;
+};
 var $elm$core$Basics$add = _Basics_add;
 var $author$project$Main$mapId = F2(
 	function (f, _v0) {
@@ -5051,6 +5061,10 @@ var $author$project$Main$incrementId = function (id) {
 		$elm$core$Basics$add(1),
 		id);
 };
+var $author$project$Main$nameValue = function (_v0) {
+	var name = _v0.a;
+	return name;
+};
 var $author$project$Main$addTask = F3(
 	function (name, description, model) {
 		return _Utils_update(
@@ -5059,7 +5073,11 @@ var $author$project$Main$addTask = F3(
 				nextTaskId: $author$project$Main$incrementId(model.nextTaskId),
 				tasks: A2(
 					$elm$core$List$cons,
-					{description: description, id: model.nextTaskId, name: name},
+					{
+						description: $author$project$Main$descriptionValue(description),
+						id: model.nextTaskId,
+						name: $author$project$Main$nameValue(name)
+					},
 					model.tasks)
 			});
 	});
@@ -5069,12 +5087,12 @@ var $elm$core$Basics$apR = F2(
 	});
 var $author$project$Main$init = A3(
 	$author$project$Main$addTask,
-	'buy groceries',
-	'milk, eggs, juice',
+	$author$project$Main$TaskNameValue('buy groceries'),
+	$author$project$Main$TaskDescriptionValue('milk, eggs, juice'),
 	A3(
 		$author$project$Main$addTask,
-		'clean room',
-		'make bed and vacuum',
+		$author$project$Main$TaskNameValue('clean room'),
+		$author$project$Main$TaskDescriptionValue('make bed and vacuum'),
 		{
 			newTaskDescription: '',
 			newTaskName: '',
@@ -10636,8 +10654,8 @@ var $author$project$Main$update = F2(
 			case 'UserClickedAddTask':
 				return A3(
 					$author$project$Main$addTask,
-					model.newTaskName,
-					model.newTaskDescription,
+					$author$project$Main$TaskNameValue(model.newTaskName),
+					$author$project$Main$TaskDescriptionValue(model.newTaskDescription),
 					_Utils_update(
 						model,
 						{newTaskDescription: '', newTaskName: ''}));

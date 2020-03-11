@@ -14,8 +14,16 @@ type Id
     = IdValue Int
 
 
+type TaskName
+    = TaskNameValue String
+
+
+type TaskDescription
+    = TaskDescriptionValue String
+
+
 type alias Task =
-    { name: String
+    { name : String
     , description : String
     , id : Id
     }
@@ -37,8 +45,8 @@ init =
         []
     , nextTaskId = IdValue 1
     }
-        |> addTask "clean room" "make bed and vacuum"
-        |> addTask "buy groceries" "milk, eggs, juice"
+        |> addTask (TaskNameValue "clean room") (TaskDescriptionValue "make bed and vacuum")
+        |> addTask (TaskNameValue "buy groceries") (TaskDescriptionValue "milk, eggs, juice")
 
 
 
@@ -65,10 +73,10 @@ update msg model =
                 | newTaskDescription = ""
                 , newTaskName = ""
             }
-                |> addTask model.newTaskName model.newTaskDescription
+                |> addTask (TaskNameValue model.newTaskName) (TaskDescriptionValue model.newTaskDescription)
 
-        UserEditedNewTaskName newName -> 
-            { model | newTaskName = newName}
+        UserEditedNewTaskName newName ->
+            { model | newTaskName = newName }
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
@@ -84,10 +92,10 @@ deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
 
 
-addTask : String -> String -> Model -> Model
+addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = name, id = model.nextTaskId, description = description } :: model.tasks
+        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -100,6 +108,16 @@ incrementId id =
 mapId : (Int -> Int) -> Id -> Id
 mapId f (IdValue id) =
     IdValue (f id)
+
+
+nameValue : TaskName -> String
+nameValue (TaskNameValue name) =
+    name
+
+
+descriptionValue : TaskDescription -> String
+descriptionValue (TaskDescriptionValue description) =
+    description
 
 
 
