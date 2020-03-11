@@ -1,4 +1,4 @@
-module Main exposing (deleteTask, main)
+module Main exposing (Task, deleteTask, main)
 
 import Browser
 import Html
@@ -55,12 +55,14 @@ update msg model =
             { model | newTaskDescription = newDescription }
 
         UserClickedDeleteTask taskId ->
-            model
+            { model
+                | tasks = deleteTask taskId model.tasks
+            }
 
 
 deleteTask : Int -> List Task -> List Task
 deleteTask id tasks =
-    tasks
+    List.filter (\task -> task.id /= id) tasks
 
 
 

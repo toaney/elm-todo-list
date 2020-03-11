@@ -10577,6 +10577,26 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Main$deleteTask = F2(
+	function (id, tasks) {
+		return A2(
+			$elm$core$List$filter,
+			function (task) {
+				return !_Utils_eq(task.id, id);
+			},
+			tasks);
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -10597,7 +10617,11 @@ var $author$project$Main$update = F2(
 					{newTaskDescription: newDescription});
 			default:
 				var taskId = msg.a;
-				return model;
+				return _Utils_update(
+					model,
+					{
+						tasks: A2($author$project$Main$deleteTask, taskId, model.tasks)
+					});
 		}
 	});
 var $author$project$Main$UserClickedAddTask = {$: 'UserClickedAddTask'};
