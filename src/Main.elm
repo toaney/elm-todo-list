@@ -19,7 +19,9 @@ type alias Model =
 
 init : Model
 init =
-    []
+    [ { name = "clean room" }
+    , { name = "buy groceries" }
+    ]
 
 
 
@@ -39,7 +41,11 @@ update msg model =
 
 
 view model =
-    Html.text "Hello World! "
+    Html.div [] (List.map taskView model)
+
+
+taskView task =
+    Html.div [] [ Html.text task.name ]
 
 
 main =
