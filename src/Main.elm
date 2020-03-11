@@ -1,35 +1,41 @@
 module Main exposing (main)
 
-import Html
 import Browser
+import Html
+
+
 
 -- MODEL
-type alias Model = Int
 
-init : Model 
-init = 
+
+type alias Model =
+    Int
+
+
+init : Model
+init =
     1
+
 
 
 -- UPDATE
 
-type Msg = Noop
+
+type Msg
+    = Noop
+
+
 update msg model =
     model
 
 
 
-
 -- VIEW
 
-view model = 
-    Html.text ("Hello World! " ++ (String.fromInt model))
+
+view model =
+    Html.text ("Hello World! " ++ String.fromInt model)
 
 
-
-
-
-
-
-main = 
+main =
     Browser.sandbox { init = init, update = update, view = view }
