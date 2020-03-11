@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (deleteTask, main)
 
 import Browser
 import Html
@@ -56,6 +56,11 @@ update msg model =
 
         UserClickedDeleteTask taskId ->
             model
+
+
+deleteTask : Int -> List Task -> List Task
+deleteTask id tasks =
+    tasks
 
 
 
