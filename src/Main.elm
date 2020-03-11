@@ -9,7 +9,7 @@ import Html
 
 
 type alias Task =
-    { name : String
+    { description : String
     }
 
 
@@ -19,8 +19,8 @@ type alias Model =
 
 init : Model
 init =
-    [ { name = "clean room" }
-    , { name = "buy groceries" }
+    [ { description = "clean room" }
+    , { description = "buy groceries" }
     ]
 
 
@@ -45,7 +45,7 @@ view model =
 
 
 taskView task =
-    Html.div [] [ Html.text task.name ]
+    Html.div [] [ Html.text task.description ]
 
 
 main =

@@ -4451,8 +4451,8 @@ var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $author$project$Main$init = _List_fromArray(
 	[
-		{name: 'clean room'},
-		{name: 'buy groceries'}
+		{description: 'clean room'},
+		{description: 'buy groceries'}
 	]);
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
@@ -5197,7 +5197,7 @@ var $author$project$Main$taskView = function (task) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text(task.name)
+				$elm$html$Html$text(task.description)
 			]));
 };
 var $author$project$Main$view = function (model) {
