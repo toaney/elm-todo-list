@@ -40,6 +40,7 @@ type Msg
     | UserEditedNewTaskDescription String
 
 
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         UserClickedAddTask ->
@@ -56,6 +57,7 @@ update msg model =
 -- VIEW
 
 
+view : Model -> Html.Html Msg
 view model =
     Html.div []
         (newTaskView model
@@ -63,6 +65,7 @@ view model =
         )
 
 
+newTaskView : Model -> Html.Html Msg
 newTaskView model =
     Html.div []
         [ Html.input [ HA.placeholder "type here", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
@@ -70,6 +73,7 @@ newTaskView model =
         ]
 
 
+taskView : Task -> Html.Html Msg
 taskView task =
     Html.div [] [ Html.text task.description ]
 
