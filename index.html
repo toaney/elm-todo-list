@@ -5034,6 +5034,7 @@ var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $author$project$Main$init = {
 	newTaskDescription: '',
+	nextTaskId: 3,
 	tasks: _List_fromArray(
 		[
 			{description: 'clean room', id: 1},
@@ -10605,9 +10606,10 @@ var $author$project$Main$update = F2(
 					model,
 					{
 						newTaskDescription: '',
+						nextTaskId: model.nextTaskId + 1,
 						tasks: A2(
 							$elm$core$List$cons,
-							{description: model.newTaskDescription, id: 3},
+							{description: model.newTaskDescription, id: model.nextTaskId},
 							model.tasks)
 					});
 			case 'UserEditedNewTaskDescription':

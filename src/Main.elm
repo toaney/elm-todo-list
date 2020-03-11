@@ -19,6 +19,7 @@ type alias Task =
 type alias Model =
     { newTaskDescription : String
     , tasks : List Task
+    , nextTaskId : Int
     }
 
 
@@ -29,6 +30,7 @@ init =
         [ { description = "clean room", id = 1 }
         , { description = "buy groceries", id = 2 }
         ]
+    , nextTaskId = 3
     }
 
 
@@ -47,8 +49,9 @@ update msg model =
     case msg of
         UserClickedAddTask ->
             { model
-                | tasks = { id = 3, description = model.newTaskDescription } :: model.tasks
+                | tasks = { id = model.nextTaskId, description = model.newTaskDescription } :: model.tasks
                 , newTaskDescription = ""
+                , nextTaskId = model.nextTaskId + 1
             }
 
         UserEditedNewTaskDescription newDescription ->
