@@ -10,16 +10,20 @@ import Html.Events as HE
 -- MODEL
 
 
+type Id
+    = IdValue Int
+
+
 type alias Task =
     { description : String
-    , id : Int
+    , id : Id
     }
 
 
 type alias Model =
     { newTaskDescription : String
     , tasks : List Task
-    , nextTaskId : Int
+    , nextTaskId : Id
     }
 
 
@@ -28,7 +32,7 @@ init =
     { newTaskDescription = ""
     , tasks =
         []
-    , nextTaskId = 1
+    , nextTaskId = IdValue 1
     }
         |> addTask "clean room"
         |> addTask "buy groceries"
@@ -41,7 +45,7 @@ init =
 type Msg
     = UserClickedAddTask
     | UserEditedNewTaskDescription String
-    | UserClickedDeleteTask Int
+    | UserClickedDeleteTask Id
 
 
 update : Msg -> Model -> Model
@@ -67,7 +71,7 @@ update msg model =
             }
 
 
-deleteTask : Int -> List Task -> List Task
+deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
 
@@ -76,8 +80,18 @@ addTask : String -> Model -> Model
 addTask description model =
     { model
         | tasks = { id = model.nextTaskId, description = description } :: model.tasks
-        , nextTaskId = model.nextTaskId + 1
+        , nextTaskId = incrementId model.nextTaskId
     }
+
+
+incrementId : Id -> Id
+incrementId id =
+    mapId ((+) 1) id
+
+
+mapId : (Int -> Int) -> Id -> Id
+mapId f (IdValue id) =
+    IdValue (f id)
 
 
 
