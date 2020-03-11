@@ -15,13 +15,15 @@ type Id
 
 
 type alias Task =
-    { description : String
+    { name: String
+    , description : String
     , id : Id
     }
 
 
 type alias Model =
-    { newTaskDescription : String
+    { newTaskName : String
+    , newTaskDescription : String
     , tasks : List Task
     , nextTaskId : Id
     }
@@ -29,13 +31,14 @@ type alias Model =
 
 init : Model
 init =
-    { newTaskDescription = ""
+    { newTaskName = ""
+    , newTaskDescription = ""
     , tasks =
         []
     , nextTaskId = IdValue 1
     }
-        |> addTask "clean room"
-        |> addTask "buy groceries"
+        |> addTask "clean room" "make bed and vacuum"
+        |> addTask "buy groceries" "milk, eggs, juice"
 
 
 
@@ -44,6 +47,7 @@ init =
 
 type Msg
     = UserClickedAddTask
+    | UserEditedNewTaskName String
     | UserEditedNewTaskDescription String
     | UserClickedDeleteTask Id
 
@@ -59,8 +63,12 @@ update msg model =
             -- }
             { model
                 | newTaskDescription = ""
+                , newTaskName = ""
             }
-                |> addTask model.newTaskDescription
+                |> addTask model.newTaskName model.newTaskDescription
+
+        UserEditedNewTaskName newName -> 
+            { model | newTaskName = newName}
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
@@ -76,10 +84,10 @@ deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
 
 
-addTask : String -> Model -> Model
-addTask description model =
+addTask : String -> String -> Model -> Model
+addTask name description model =
     { model
-        | tasks = { id = model.nextTaskId, description = description } :: model.tasks
+        | tasks = { name = name, id = model.nextTaskId, description = description } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -109,7 +117,8 @@ view model =
 newTaskView : Model -> Html.Html Msg
 newTaskView model =
     Html.div []
-        [ Html.input [ HA.placeholder "type here", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
+        [ Html.input [ HA.placeholder "Name", HA.value model.newTaskName, HE.onInput UserEditedNewTaskName ] []
+        , Html.input [ HA.placeholder "Description", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
         , Html.button [ HE.onClick UserClickedAddTask ] [ Html.text "add" ]
         ]
 
@@ -117,7 +126,9 @@ newTaskView model =
 taskView : Task -> Html.Html Msg
 taskView task =
     Html.div []
-        [ Html.text task.description
+        [ Html.text task.name
+        , Html.text " : "
+        , Html.text task.description
         , Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
         ]
 
