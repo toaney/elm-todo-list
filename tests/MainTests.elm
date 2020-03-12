@@ -1,4 +1,4 @@
-module MainTests exposing (..)
+module MainTests exposing (suite)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
@@ -10,6 +10,7 @@ suite : Test
 suite =
     describe "ToDo App"
         [ deletingTaskTests
+        , toggleTaskViewStateTests
         ]
 
 
@@ -28,6 +29,24 @@ deletingTaskTests =
             \_ ->
                 Main.deleteTask (Id 2) taskList
                     |> Expect.equalLists [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed } ]
+        ]
+
+
+toggleTaskViewStateTests : Test
+toggleTaskViewStateTests =
+    describe "Toggling viewState on a task"
+        [ test "Toggle task viewState from Collapsed to Expanded" <|
+            \_ ->
+                Main.toggleTaskViewState (Id 1) taskList
+                    |> Expect.equalLists
+                        [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Expanded }
+                        , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed }
+                        ]
+        , test "Toggle task viewState twice ending in viewState Collapsed" <|
+            \_ ->
+                Main.toggleTaskViewState (Id 1) taskList
+                    |> Main.toggleTaskViewState (Id 1)
+                    |> Expect.equalLists taskList
         ]
 
 

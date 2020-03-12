@@ -1,4 +1,4 @@
-module Main exposing (Id(..), Task, TaskViewState(..), deleteTask, main)
+module Main exposing (Id(..), Task, TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
 import Browser
 import Html
@@ -106,7 +106,27 @@ deleteTask id tasks =
 
 toggleTaskViewState : Id -> List Task -> List Task
 toggleTaskViewState id tasks =
-    tasks
+    let
+        toggleViewState task =
+            case task.viewState of
+                Expanded ->
+                    { task
+                        | viewState = Collapsed
+                    }
+
+                Collapsed ->
+                    { task
+                        | viewState = Expanded
+                    }
+
+        toggleViewStateIfId thisId task =
+            if thisId == task.id then
+                toggleViewState task
+
+            else
+                task
+    in
+    List.map (toggleViewStateIfId id) tasks
 
 
 addTask : TaskName -> TaskDescription -> Model -> Model

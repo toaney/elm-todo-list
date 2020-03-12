@@ -10650,9 +10650,29 @@ var $author$project$Main$deleteTask = F2(
 			},
 			tasks);
 	});
+var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(
 	function (id, tasks) {
-		return tasks;
+		var toggleViewState = function (task) {
+			var _v0 = task.viewState;
+			if (_v0.$ === 'Expanded') {
+				return _Utils_update(
+					task,
+					{viewState: $author$project$Main$Collapsed});
+			} else {
+				return _Utils_update(
+					task,
+					{viewState: $author$project$Main$Expanded});
+			}
+		};
+		var toggleViewStateIfId = F2(
+			function (thisId, task) {
+				return _Utils_eq(thisId, task.id) ? toggleViewState(task) : task;
+			});
+		return A2(
+			$elm$core$List$map,
+			toggleViewStateIfId(id),
+			tasks);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
