@@ -2,7 +2,7 @@ module MainTests exposing (suite)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Main exposing (Id(..), Task, TaskViewState(..))
+import Main exposing (EditNameState(..), Id(..), Task, TaskViewState(..))
 import Test exposing (..)
 
 
@@ -28,7 +28,7 @@ deletingTaskTests =
         , test "Removes task for given id" <|
             \_ ->
                 Main.deleteTask (Id 2) taskList
-                    |> Expect.equalLists [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed } ]
+                    |> Expect.equalLists [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed, editNameState = NotEditing } ]
         ]
 
 
@@ -39,8 +39,8 @@ toggleTaskViewStateTests =
             \_ ->
                 Main.toggleTaskViewState (Id 1) taskList
                     |> Expect.equalLists
-                        [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Expanded }
-                        , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed }
+                        [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Expanded, editNameState = NotEditing }
+                        , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
                         ]
         , test "Toggle task viewState twice ending in viewState Collapsed" <|
             \_ ->
@@ -61,6 +61,6 @@ toggleTaskViewStateTests =
 
 taskList : List Task
 taskList =
-    [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed }
-    , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed }
+    [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
+    , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
     ]

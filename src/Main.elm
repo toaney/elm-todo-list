@@ -1,4 +1,4 @@
-module Main exposing (Id(..), Task, TaskViewState(..), deleteTask, main, toggleTaskViewState)
+module Main exposing (EditNameState(..), Id(..), Task, TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
 import Browser
 import Html
@@ -129,6 +129,7 @@ startEditingTaskName id tasks =
                         | editNameState = Editing
                     }
 
+        startEditingIfId : Id -> Task -> Task
         startEditingIfId thisId task =
             if thisId == task.id then
                 startEditing task
