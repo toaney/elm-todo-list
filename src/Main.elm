@@ -55,7 +55,7 @@ init =
 
 type Msg
     = UserClickedAddTask
-    | UserEditedNewTaskName String
+    | UserEditedNewTaskName TaskName
     | UserEditedNewTaskDescription String
     | UserClickedDeleteTask Id
 
@@ -76,7 +76,7 @@ update msg model =
                 |> addTask model.newTaskName (TaskDescription model.newTaskDescription)
 
         UserEditedNewTaskName newName ->
-            { model | newTaskName = TaskName newName }
+            { model | newTaskName = newName }
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
@@ -138,7 +138,7 @@ newTaskView model =
         [ Html.input
             [ HA.placeholder "Name"
             , HA.value <| nameValue model.newTaskName
-            , HE.onInput UserEditedNewTaskName
+            , HE.onInput <| TaskName >> UserEditedNewTaskName
             ]
             []
         , Html.input [ HA.placeholder "Description", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []

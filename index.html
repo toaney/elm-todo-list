@@ -10666,9 +10666,7 @@ var $author$project$Main$update = F2(
 				var newName = msg.a;
 				return _Utils_update(
 					model,
-					{
-						newTaskName: $author$project$Main$TaskName(newName)
-					});
+					{newTaskName: newName});
 			case 'UserEditedNewTaskDescription':
 				var newDescription = msg.a;
 				return _Utils_update(
@@ -10704,7 +10702,8 @@ var $author$project$Main$newTaskView = function (model) {
 						$elm$html$Html$Attributes$placeholder('Name'),
 						$elm$html$Html$Attributes$value(
 						$author$project$Main$nameValue(model.newTaskName)),
-						$elm$html$Html$Events$onInput($author$project$Main$UserEditedNewTaskName)
+						$elm$html$Html$Events$onInput(
+						A2($elm$core$Basics$composeR, $author$project$Main$TaskName, $author$project$Main$UserEditedNewTaskName))
 					]),
 				_List_Nil),
 				A2(
@@ -10765,7 +10764,7 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["String.String"],"UserEditedNewTaskDescription":["String.String"],"UserClickedDeleteTask":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"String.String":{"args":[],"tags":{"String":[]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["String.String"],"UserClickedDeleteTask":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"String.String":{"args":[],"tags":{"String":[]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }
