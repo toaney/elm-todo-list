@@ -190,11 +190,26 @@ newTaskView model =
 
 taskView : Task -> Html.Html Msg
 taskView task =
-    Html.div []
-        [ Html.div [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
-        , Html.div [] [ Html.text task.description ]
-        , Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
-        ]
+    let
+        taskNameView =
+            Html.div [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
+
+        deleteButtonView =
+            Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
+    in
+    case task.viewState of
+        Collapsed ->
+            Html.div []
+                [ taskNameView
+                , deleteButtonView
+                ]
+
+        Expanded ->
+            Html.div []
+                [ taskNameView
+                , Html.div [] [ Html.text task.description ]
+                , deleteButtonView
+                ]
 
 
 main =

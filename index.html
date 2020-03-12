@@ -10772,41 +10772,52 @@ var $author$project$Main$UserClickedToggleTaskViewState = function (a) {
 	return {$: 'UserClickedToggleTaskViewState', a: a};
 };
 var $author$project$Main$taskView = function (task) {
-	return A2(
+	var taskNameView = A2(
 		$elm$html$Html$div,
-		_List_Nil,
 		_List_fromArray(
 			[
-				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Main$UserClickedToggleTaskViewState(task.id))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(task.name)
-					])),
-				A2(
-				$elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text(task.description)
-					])),
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Main$UserClickedDeleteTask(task.id))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('delete')
-					]))
+				$elm$html$Html$Events$onClick(
+				$author$project$Main$UserClickedToggleTaskViewState(task.id))
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(task.name)
 			]));
+	var deleteButtonView = A2(
+		$elm$html$Html$button,
+		_List_fromArray(
+			[
+				$elm$html$Html$Events$onClick(
+				$author$project$Main$UserClickedDeleteTask(task.id))
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text('delete')
+			]));
+	var _v0 = task.viewState;
+	if (_v0.$ === 'Collapsed') {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[taskNameView, deleteButtonView]));
+	} else {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					taskNameView,
+					A2(
+					$elm$html$Html$div,
+					_List_Nil,
+					_List_fromArray(
+						[
+							$elm$html$Html$text(task.description)
+						])),
+					deleteButtonView
+				]));
+	}
 };
 var $author$project$Main$view = function (model) {
 	return A2(
