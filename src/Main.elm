@@ -116,9 +116,24 @@ deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
 
 
+editTaskForId : Id -> (Task -> Task) -> List Task -> List Task
+editTaskForId id editFunction tasks =
+    let
+        editTaskIfId : Task -> Task
+        editTaskIfId task =
+            if id == task.id then
+                editFunction task
+
+            else
+                task
+    in
+    List.map editTaskIfId tasks
+
+
 startEditingTaskName : Id -> List Task -> List Task
 startEditingTaskName id tasks =
     let
+        startEditing : Task -> Task
         startEditing task =
             case task.editNameState of
                 Editing ->
@@ -128,16 +143,8 @@ startEditingTaskName id tasks =
                     { task
                         | editNameState = Editing
                     }
-
-        startEditingIfId : Id -> Task -> Task
-        startEditingIfId thisId task =
-            if thisId == task.id then
-                startEditing task
-
-            else
-                task
     in
-    List.map (startEditingIfId id) tasks
+    editTaskForId id startEditing tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task
@@ -154,15 +161,8 @@ toggleTaskViewState id tasks =
                     { task
                         | viewState = Expanded
                     }
-
-        toggleViewStateIfId thisId task =
-            if thisId == task.id then
-                toggleViewState task
-
-            else
-                task
     in
-    List.map (toggleViewStateIfId id) tasks
+    editTaskForId id toggleViewState tasks
 
 
 addTask : TaskName -> TaskDescription -> Model -> Model

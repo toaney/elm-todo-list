@@ -10653,6 +10653,13 @@ var $author$project$Main$deleteTask = F2(
 			tasks);
 	});
 var $author$project$Main$Editing = {$: 'Editing'};
+var $author$project$Main$editTaskForId = F3(
+	function (id, editFunction, tasks) {
+		var editTaskIfId = function (task) {
+			return _Utils_eq(id, task.id) ? editFunction(task) : task;
+		};
+		return A2($elm$core$List$map, editTaskIfId, tasks);
+	});
 var $author$project$Main$startEditingTaskName = F2(
 	function (id, tasks) {
 		var startEditing = function (task) {
@@ -10665,14 +10672,7 @@ var $author$project$Main$startEditingTaskName = F2(
 					{editNameState: $author$project$Main$Editing});
 			}
 		};
-		var startEditingIfId = F2(
-			function (thisId, task) {
-				return _Utils_eq(thisId, task.id) ? startEditing(task) : task;
-			});
-		return A2(
-			$elm$core$List$map,
-			startEditingIfId(id),
-			tasks);
+		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
 	});
 var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(
@@ -10689,14 +10689,7 @@ var $author$project$Main$toggleTaskViewState = F2(
 					{viewState: $author$project$Main$Expanded});
 			}
 		};
-		var toggleViewStateIfId = F2(
-			function (thisId, task) {
-				return _Utils_eq(thisId, task.id) ? toggleViewState(task) : task;
-			});
-		return A2(
-			$elm$core$List$map,
-			toggleViewStateIfId(id),
-			tasks);
+		return A3($author$project$Main$editTaskForId, id, toggleViewState, tasks);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
