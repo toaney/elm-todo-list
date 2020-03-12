@@ -5094,7 +5094,7 @@ var $author$project$Main$init = A3(
 		$author$project$Main$TaskName('clean room'),
 		$author$project$Main$TaskDescription('make bed and vacuum'),
 		{
-			newTaskDescription: '',
+			newTaskDescription: $author$project$Main$TaskDescription(''),
 			newTaskName: $author$project$Main$TaskName(''),
 			nextTaskId: $author$project$Main$Id(1),
 			tasks: _List_Nil
@@ -10655,11 +10655,11 @@ var $author$project$Main$update = F2(
 				return A3(
 					$author$project$Main$addTask,
 					model.newTaskName,
-					$author$project$Main$TaskDescription(model.newTaskDescription),
+					model.newTaskDescription,
 					_Utils_update(
 						model,
 						{
-							newTaskDescription: '',
+							newTaskDescription: $author$project$Main$TaskDescription(''),
 							newTaskName: $author$project$Main$TaskName('')
 						}));
 			case 'UserEditedNewTaskName':
@@ -10711,8 +10711,13 @@ var $author$project$Main$newTaskView = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$placeholder('Description'),
-						$elm$html$Html$Attributes$value(model.newTaskDescription),
-						$elm$html$Html$Events$onInput($author$project$Main$UserEditedNewTaskDescription)
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$descriptionValue(model.newTaskDescription)),
+						$elm$html$Html$Events$onInput(
+						function (taskName) {
+							return $author$project$Main$UserEditedNewTaskDescription(
+								$author$project$Main$TaskDescription(taskName));
+						})
 					]),
 				_List_Nil),
 				A2(
@@ -10764,7 +10769,7 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["String.String"],"UserClickedDeleteTask":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"String.String":{"args":[],"tags":{"String":[]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }

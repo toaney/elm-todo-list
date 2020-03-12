@@ -31,7 +31,7 @@ type alias Task =
 
 type alias Model =
     { newTaskName : TaskName
-    , newTaskDescription : String
+    , newTaskDescription : TaskDescription
     , tasks : List Task
     , nextTaskId : Id
     }
@@ -40,7 +40,7 @@ type alias Model =
 init : Model
 init =
     { newTaskName = TaskName ""
-    , newTaskDescription = ""
+    , newTaskDescription = TaskDescription ""
     , tasks =
         []
     , nextTaskId = Id 1
@@ -56,7 +56,7 @@ init =
 type Msg
     = UserClickedAddTask
     | UserEditedNewTaskName TaskName
-    | UserEditedNewTaskDescription String
+    | UserEditedNewTaskDescription TaskDescription
     | UserClickedDeleteTask Id
 
 
@@ -70,10 +70,10 @@ update msg model =
             --     , tasks = model.tasks
             -- }
             { model
-                | newTaskDescription = ""
+                | newTaskDescription = TaskDescription ""
                 , newTaskName = TaskName ""
             }
-                |> addTask model.newTaskName (TaskDescription model.newTaskDescription)
+                |> addTask model.newTaskName model.newTaskDescription
 
         UserEditedNewTaskName newName ->
             { model | newTaskName = newName }
@@ -141,7 +141,12 @@ newTaskView model =
             , HE.onInput <| TaskName >> UserEditedNewTaskName
             ]
             []
-        , Html.input [ HA.placeholder "Description", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
+        , Html.input
+            [ HA.placeholder "Description"
+            , HA.value <| descriptionValue model.newTaskDescription
+            , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
+            ]
+            []
         , Html.button [ HE.onClick UserClickedAddTask ] [ Html.text "add" ]
         ]
 
