@@ -10650,6 +10650,10 @@ var $author$project$Main$deleteTask = F2(
 			},
 			tasks);
 	});
+var $author$project$Main$startEditingTaskName = F2(
+	function (id, tasks) {
+		return tasks;
+	});
 var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(
 	function (id, tasks) {
@@ -10705,12 +10709,19 @@ var $author$project$Main$update = F2(
 					{
 						tasks: A2($author$project$Main$deleteTask, taskId, model.tasks)
 					});
-			default:
+			case 'UserClickedToggleTaskViewState':
 				var taskId = msg.a;
 				return _Utils_update(
 					model,
 					{
 						tasks: A2($author$project$Main$toggleTaskViewState, taskId, model.tasks)
+					});
+			default:
+				var taskId = msg.a;
+				return _Utils_update(
+					model,
+					{
+						tasks: A2($author$project$Main$startEditingTaskName, taskId, model.tasks)
 					});
 		}
 	});
@@ -10768,6 +10779,9 @@ var $author$project$Main$newTaskView = function (model) {
 var $author$project$Main$UserClickedDeleteTask = function (a) {
 	return {$: 'UserClickedDeleteTask', a: a};
 };
+var $author$project$Main$UserClickedEditTaskName = function (a) {
+	return {$: 'UserClickedEditTaskName', a: a};
+};
 var $author$project$Main$UserClickedToggleTaskViewState = function (a) {
 	return {$: 'UserClickedToggleTaskViewState', a: a};
 };
@@ -10781,7 +10795,18 @@ var $author$project$Main$taskView = function (task) {
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text(task.name)
+				$elm$html$Html$text(task.name),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick(
+						$author$project$Main$UserClickedEditTaskName(task.id))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('edit')
+					]))
 			]));
 	var deleteButtonView = A2(
 		$elm$html$Html$button,
@@ -10831,7 +10856,7 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }

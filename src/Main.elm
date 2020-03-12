@@ -65,6 +65,7 @@ type Msg
     | UserEditedNewTaskDescription TaskDescription
     | UserClickedDeleteTask Id
     | UserClickedToggleTaskViewState Id
+    | UserClickedEditTaskName Id
 
 
 update : Msg -> Model -> Model
@@ -98,10 +99,20 @@ update msg model =
                 | tasks = toggleTaskViewState taskId model.tasks
             }
 
+        UserClickedEditTaskName taskId ->
+            { model
+                | tasks = startEditingTaskName taskId model.tasks
+            }
+
 
 deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
+
+
+startEditingTaskName : Id -> List Task -> List Task
+startEditingTaskName id tasks =
+    tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task
@@ -192,7 +203,11 @@ taskView : Task -> Html.Html Msg
 taskView task =
     let
         taskNameView =
-            Html.div [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
+            Html.div
+                [ HE.onClick <| UserClickedToggleTaskViewState task.id ]
+                [ Html.text task.name
+                , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
+                ]
 
         deleteButtonView =
             Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
