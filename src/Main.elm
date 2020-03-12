@@ -26,7 +26,13 @@ type alias Task =
     { name : String
     , description : String
     , id : Id
+    , viewState : TaskViewState
     }
+
+
+type TaskViewState
+    = Expanded
+    | Collapsed
 
 
 type alias Model =
@@ -58,6 +64,7 @@ type Msg
     | UserEditedNewTaskName TaskName
     | UserEditedNewTaskDescription TaskDescription
     | UserClickedDeleteTask Id
+    | UserClickedToggleTaskViewState Id
 
 
 update : Msg -> Model -> Model
@@ -86,16 +93,26 @@ update msg model =
                 | tasks = deleteTask taskId model.tasks
             }
 
+        UserClickedToggleTaskViewState taskId ->
+            { model
+                | tasks = toggleTaskViewState taskId model.tasks
+            }
+
 
 deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
 
 
+toggleTaskViewState : Id -> List Task -> List Task
+toggleTaskViewState id tasks =
+    tasks
+
+
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description } :: model.tasks
+        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description, viewState = Collapsed } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -154,9 +171,8 @@ newTaskView model =
 taskView : Task -> Html.Html Msg
 taskView task =
     Html.div []
-        [ Html.text task.name
-        , Html.text " : "
-        , Html.text task.description
+        [ Html.div [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
+        , Html.div [] [ Html.text task.description ]
         , Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
         ]
 
