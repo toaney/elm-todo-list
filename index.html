@@ -5046,10 +5046,6 @@ var $author$project$Main$TaskName = function (a) {
 };
 var $author$project$Main$Collapsed = {$: 'Collapsed'};
 var $author$project$Main$NotEditing = {$: 'NotEditing'};
-var $author$project$Main$descriptionValue = function (_v0) {
-	var description = _v0.a;
-	return description;
-};
 var $elm$core$Basics$add = _Basics_add;
 var $author$project$Main$mapId = F2(
 	function (f, _v0) {
@@ -5063,10 +5059,6 @@ var $author$project$Main$incrementId = function (id) {
 		$elm$core$Basics$add(1),
 		id);
 };
-var $author$project$Main$nameValue = function (_v0) {
-	var name = _v0.a;
-	return name;
-};
 var $author$project$Main$addTask = F3(
 	function (name, description, model) {
 		return _Utils_update(
@@ -5075,13 +5067,7 @@ var $author$project$Main$addTask = F3(
 				nextTaskId: $author$project$Main$incrementId(model.nextTaskId),
 				tasks: A2(
 					$elm$core$List$cons,
-					{
-						description: $author$project$Main$descriptionValue(description),
-						editNameState: $author$project$Main$NotEditing,
-						id: model.nextTaskId,
-						name: $author$project$Main$nameValue(name),
-						viewState: $author$project$Main$Collapsed
-					},
+					{description: description, editNameState: $author$project$Main$NotEditing, id: model.nextTaskId, name: name, tempName: name, viewState: $author$project$Main$Collapsed},
 					model.tasks)
 			});
 	});
@@ -10674,6 +10660,20 @@ var $author$project$Main$startEditingTaskName = F2(
 		};
 		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
 	});
+var $author$project$Main$stopEditingTaskName = F2(
+	function (id, tasks) {
+		var stopEditing = function (task) {
+			var _v0 = task.editNameState;
+			if (_v0.$ === 'Editing') {
+				return _Utils_update(
+					task,
+					{editNameState: $author$project$Main$NotEditing, tempName: task.name});
+			} else {
+				return task;
+			}
+		};
+		return A3($author$project$Main$editTaskForId, id, stopEditing, tasks);
+	});
 var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(
 	function (id, tasks) {
@@ -10690,6 +10690,24 @@ var $author$project$Main$toggleTaskViewState = F2(
 			}
 		};
 		return A3($author$project$Main$editTaskForId, id, toggleViewState, tasks);
+	});
+var $author$project$Main$updateName = F2(
+	function (id, tasks) {
+		var updateTaskName = function (task) {
+			return _Utils_update(
+				task,
+				{name: task.tempName, tempName: task.tempName});
+		};
+		return A3($author$project$Main$editTaskForId, id, updateTaskName, tasks);
+	});
+var $author$project$Main$updateTempName = F3(
+	function (id, temporaryName, tasks) {
+		var newTempName = function (task) {
+			return _Utils_update(
+				task,
+				{tempName: temporaryName});
+		};
+		return A3($author$project$Main$editTaskForId, id, newTempName, tasks);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -10729,12 +10747,37 @@ var $author$project$Main$update = F2(
 					{
 						tasks: A2($author$project$Main$toggleTaskViewState, taskId, model.tasks)
 					});
-			default:
+			case 'UserClickedEditTaskName':
 				var taskId = msg.a;
 				return _Utils_update(
 					model,
 					{
 						tasks: A2($author$project$Main$startEditingTaskName, taskId, model.tasks)
+					});
+			case 'UserClickedSaveEditTaskName':
+				var taskId = msg.a;
+				return _Utils_update(
+					model,
+					{
+						tasks: A2(
+							$author$project$Main$stopEditingTaskName,
+							taskId,
+							A2($author$project$Main$updateName, taskId, model.tasks))
+					});
+			case 'UserClickedCancelEditTaskName':
+				var taskId = msg.a;
+				return _Utils_update(
+					model,
+					{
+						tasks: A2($author$project$Main$stopEditingTaskName, taskId, model.tasks)
+					});
+			default:
+				var taskId = msg.a;
+				var editedTaskName = msg.b;
+				return _Utils_update(
+					model,
+					{
+						tasks: A3($author$project$Main$updateTempName, taskId, editedTaskName, model.tasks)
 					});
 		}
 	});
@@ -10744,6 +10787,14 @@ var $author$project$Main$UserEditedNewTaskDescription = function (a) {
 };
 var $author$project$Main$UserEditedNewTaskName = function (a) {
 	return {$: 'UserEditedNewTaskName', a: a};
+};
+var $author$project$Main$descriptionValue = function (_v0) {
+	var description = _v0.a;
+	return description;
+};
+var $author$project$Main$nameValue = function (_v0) {
+	var name = _v0.a;
+	return name;
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $author$project$Main$newTaskView = function (model) {
@@ -10792,41 +10843,101 @@ var $author$project$Main$newTaskView = function (model) {
 var $author$project$Main$UserClickedDeleteTask = function (a) {
 	return {$: 'UserClickedDeleteTask', a: a};
 };
+var $author$project$Main$UserClickedCancelEditTaskName = function (a) {
+	return {$: 'UserClickedCancelEditTaskName', a: a};
+};
 var $author$project$Main$UserClickedEditTaskName = function (a) {
 	return {$: 'UserClickedEditTaskName', a: a};
+};
+var $author$project$Main$UserClickedSaveEditTaskName = function (a) {
+	return {$: 'UserClickedSaveEditTaskName', a: a};
 };
 var $author$project$Main$UserClickedToggleTaskViewState = function (a) {
 	return {$: 'UserClickedToggleTaskViewState', a: a};
 };
+var $author$project$Main$UserEditedTaskName = F2(
+	function (a, b) {
+		return {$: 'UserEditedTaskName', a: a, b: b};
+	});
+var $author$project$Main$taskNameView = function (task) {
+	var _v0 = task.editNameState;
+	if (_v0.$ === 'Editing') {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$input,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onInput(
+							function (taskName) {
+								return A2(
+									$author$project$Main$UserEditedTaskName,
+									task.id,
+									$author$project$Main$TaskName(taskName));
+							}),
+							$elm$html$Html$Attributes$value(
+							$author$project$Main$nameValue(task.tempName))
+						]),
+					_List_Nil),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							$author$project$Main$UserClickedSaveEditTaskName(task.id))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('save')
+						])),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							$author$project$Main$UserClickedCancelEditTaskName(task.id))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('cancel')
+						]))
+				]));
+	} else {
+		return A2(
+			$elm$html$Html$div,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$span,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							$author$project$Main$UserClickedToggleTaskViewState(task.id))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text(
+							$author$project$Main$nameValue(task.name))
+						])),
+					A2(
+					$elm$html$Html$button,
+					_List_fromArray(
+						[
+							$elm$html$Html$Events$onClick(
+							$author$project$Main$UserClickedEditTaskName(task.id))
+						]),
+					_List_fromArray(
+						[
+							$elm$html$Html$text('edit')
+						]))
+				]));
+	}
+};
 var $author$project$Main$taskView = function (task) {
-	var taskNameView = A2(
-		$elm$html$Html$div,
-		_List_Nil,
-		_List_fromArray(
-			[
-				A2(
-				$elm$html$Html$span,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Main$UserClickedToggleTaskViewState(task.id))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text(task.name)
-					])),
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick(
-						$author$project$Main$UserClickedEditTaskName(task.id))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('edit')
-					]))
-			]));
 	var deleteButtonView = A2(
 		$elm$html$Html$button,
 		_List_fromArray(
@@ -10844,20 +10955,24 @@ var $author$project$Main$taskView = function (task) {
 			$elm$html$Html$div,
 			_List_Nil,
 			_List_fromArray(
-				[taskNameView, deleteButtonView]));
+				[
+					$author$project$Main$taskNameView(task),
+					deleteButtonView
+				]));
 	} else {
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
 			_List_fromArray(
 				[
-					taskNameView,
+					$author$project$Main$taskNameView(task),
 					A2(
 					$elm$html$Html$div,
 					_List_Nil,
 					_List_fromArray(
 						[
-							$elm$html$Html$text(task.description)
+							$elm$html$Html$text(
+							$author$project$Main$descriptionValue(task.description))
 						])),
 					deleteButtonView
 				]));
@@ -10875,7 +10990,7 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
 }

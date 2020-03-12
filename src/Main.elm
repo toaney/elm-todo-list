@@ -23,11 +23,12 @@ type TaskDescription
 
 
 type alias Task =
-    { name : String
-    , description : String
+    { name : TaskName
+    , description : TaskDescription
     , id : Id
     , viewState : TaskViewState
     , editNameState : EditNameState
+    , tempName : TaskName
     }
 
 
@@ -72,6 +73,9 @@ type Msg
     | UserClickedDeleteTask Id
     | UserClickedToggleTaskViewState Id
     | UserClickedEditTaskName Id
+    | UserClickedSaveEditTaskName Id
+    | UserClickedCancelEditTaskName Id
+    | UserEditedTaskName Id TaskName
 
 
 update : Msg -> Model -> Model
@@ -110,10 +114,31 @@ update msg model =
                 | tasks = startEditingTaskName taskId model.tasks
             }
 
+        UserClickedSaveEditTaskName taskId ->
+            { model
+                | tasks = updateName taskId model.tasks |> stopEditingTaskName taskId
+            }
+
+        UserClickedCancelEditTaskName taskId ->
+            { model
+                | tasks = stopEditingTaskName taskId model.tasks
+            }
+
+        UserEditedTaskName taskId editedTaskName ->
+            { model
+                | tasks = updateTempName taskId editedTaskName model.tasks
+            }
+
 
 deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
+
+
+
+-- deleteTask : Id -> List Task -> List Task
+-- deleteTask id =
+--     List.filter (\task -> task.id /= id)
 
 
 editTaskForId : Id -> (Task -> Task) -> List Task -> List Task
@@ -128,6 +153,47 @@ editTaskForId id editFunction tasks =
                 task
     in
     List.map editTaskIfId tasks
+
+
+updateName : Id -> List Task -> List Task
+updateName id tasks =
+    let
+        updateTaskName task =
+            { task
+                | name = task.tempName
+                , tempName = task.tempName
+            }
+    in
+    editTaskForId id updateTaskName tasks
+
+
+updateTempName : Id -> TaskName -> List Task -> List Task
+updateTempName id temporaryName tasks =
+    let
+        newTempName task =
+            { task
+                | tempName = temporaryName
+            }
+    in
+    editTaskForId id newTempName tasks
+
+
+stopEditingTaskName : Id -> List Task -> List Task
+stopEditingTaskName id tasks =
+    let
+        stopEditing : Task -> Task
+        stopEditing task =
+            case task.editNameState of
+                Editing ->
+                    { task
+                        | editNameState = NotEditing
+                        , tempName = task.name
+                    }
+
+                NotEditing ->
+                    task
+    in
+    editTaskForId id stopEditing tasks
 
 
 startEditingTaskName : Id -> List Task -> List Task
@@ -168,7 +234,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description, viewState = Collapsed, editNameState = NotEditing } :: model.tasks
+        | tasks = { name = name, id = model.nextTaskId, description = description, viewState = Collapsed, editNameState = NotEditing, tempName = name } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -227,28 +293,52 @@ newTaskView model =
 taskView : Task -> Html.Html Msg
 taskView task =
     let
-        taskNameView =
-            Html.div
-                []
-                [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
-                , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
-                ]
-
         deleteButtonView =
             Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
     in
     case task.viewState of
         Collapsed ->
             Html.div []
-                [ taskNameView
+                [ taskNameView task
                 , deleteButtonView
                 ]
 
         Expanded ->
             Html.div []
-                [ taskNameView
-                , Html.div [] [ Html.text task.description ]
+                [ taskNameView task
+                , Html.div [] [ Html.text (descriptionValue task.description) ]
                 , deleteButtonView
+                ]
+
+
+taskNameView : Task -> Html.Html Msg
+taskNameView task =
+    case task.editNameState of
+        Editing ->
+            Html.div
+                []
+                -- [ HA.placeholder "Description"
+                -- , HA.value <| descriptionValue model.newTaskDescription
+                -- , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
+                -- ]
+                -- [ HA.placeholder "Name"
+                -- , HA.value <| nameValue model.newTaskName
+                -- , HE.onInput <| TaskName >> UserEditedNewTaskName
+                -- ]
+                [ Html.input
+                    [ HE.onInput (\taskName -> TaskName taskName |> UserEditedTaskName task.id)
+                    , HA.value (nameValue task.tempName)
+                    ]
+                    []
+                , Html.button [ HE.onClick (UserClickedSaveEditTaskName task.id) ] [ Html.text "save" ]
+                , Html.button [ HE.onClick (UserClickedCancelEditTaskName task.id) ] [ Html.text "cancel" ]
+                ]
+
+        NotEditing ->
+            Html.div
+                []
+                [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue task.name) ]
+                , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
 
 
