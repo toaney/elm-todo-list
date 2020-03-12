@@ -10808,14 +10808,20 @@ var $author$project$Main$UserClickedToggleTaskViewState = function (a) {
 var $author$project$Main$taskView = function (task) {
 	var taskNameView = A2(
 		$elm$html$Html$div,
+		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$Events$onClick(
-				$author$project$Main$UserClickedToggleTaskViewState(task.id))
-			]),
-		_List_fromArray(
-			[
-				$elm$html$Html$text(task.name),
+				A2(
+				$elm$html$Html$span,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick(
+						$author$project$Main$UserClickedToggleTaskViewState(task.id))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(task.name)
+					])),
 				A2(
 				$elm$html$Html$button,
 				_List_fromArray(

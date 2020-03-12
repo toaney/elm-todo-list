@@ -228,8 +228,8 @@ taskView task =
     let
         taskNameView =
             Html.div
-                [ HE.onClick <| UserClickedToggleTaskViewState task.id ]
-                [ Html.text task.name
+                []
+                [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text task.name ]
                 , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
 
