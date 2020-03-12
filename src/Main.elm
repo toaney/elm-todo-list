@@ -11,15 +11,15 @@ import Html.Events as HE
 
 
 type Id
-    = IdValue Int
+    = Id Int
 
 
 type TaskName
-    = TaskNameValue String
+    = TaskName String
 
 
 type TaskDescription
-    = TaskDescriptionValue String
+    = TaskDescription String
 
 
 type alias Task =
@@ -43,10 +43,10 @@ init =
     , newTaskDescription = ""
     , tasks =
         []
-    , nextTaskId = IdValue 1
+    , nextTaskId = Id 1
     }
-        |> addTask (TaskNameValue "clean room") (TaskDescriptionValue "make bed and vacuum")
-        |> addTask (TaskNameValue "buy groceries") (TaskDescriptionValue "milk, eggs, juice")
+        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum")
+        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice")
 
 
 
@@ -73,7 +73,7 @@ update msg model =
                 | newTaskDescription = ""
                 , newTaskName = ""
             }
-                |> addTask (TaskNameValue model.newTaskName) (TaskDescriptionValue model.newTaskDescription)
+                |> addTask (TaskName model.newTaskName) (TaskDescription model.newTaskDescription)
 
         UserEditedNewTaskName newName ->
             { model | newTaskName = newName }
@@ -106,17 +106,17 @@ incrementId id =
 
 
 mapId : (Int -> Int) -> Id -> Id
-mapId f (IdValue id) =
-    IdValue (f id)
+mapId f (Id id) =
+    Id (f id)
 
 
 nameValue : TaskName -> String
-nameValue (TaskNameValue name) =
+nameValue (TaskName name) =
     name
 
 
 descriptionValue : TaskDescription -> String
-descriptionValue (TaskDescriptionValue description) =
+descriptionValue (TaskDescription description) =
     description
 
 
