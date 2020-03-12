@@ -1,4 +1,4 @@
-module Main exposing (Task, deleteTask, main)
+module Main exposing (Id(..), Task, TaskViewState(..), deleteTask, main)
 
 import Browser
 import Html
