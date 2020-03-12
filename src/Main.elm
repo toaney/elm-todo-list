@@ -30,7 +30,7 @@ type alias Task =
 
 
 type alias Model =
-    { newTaskName : String
+    { newTaskName : TaskName
     , newTaskDescription : String
     , tasks : List Task
     , nextTaskId : Id
@@ -39,7 +39,7 @@ type alias Model =
 
 init : Model
 init =
-    { newTaskName = ""
+    { newTaskName = TaskName ""
     , newTaskDescription = ""
     , tasks =
         []
@@ -71,12 +71,12 @@ update msg model =
             -- }
             { model
                 | newTaskDescription = ""
-                , newTaskName = ""
+                , newTaskName = TaskName ""
             }
-                |> addTask (TaskName model.newTaskName) (TaskDescription model.newTaskDescription)
+                |> addTask model.newTaskName (TaskDescription model.newTaskDescription)
 
         UserEditedNewTaskName newName ->
-            { model | newTaskName = newName }
+            { model | newTaskName = TaskName newName }
 
         UserEditedNewTaskDescription newDescription ->
             { model | newTaskDescription = newDescription }
@@ -135,7 +135,12 @@ view model =
 newTaskView : Model -> Html.Html Msg
 newTaskView model =
     Html.div []
-        [ Html.input [ HA.placeholder "Name", HA.value model.newTaskName, HE.onInput UserEditedNewTaskName ] []
+        [ Html.input
+            [ HA.placeholder "Name"
+            , HA.value <| nameValue model.newTaskName
+            , HE.onInput UserEditedNewTaskName
+            ]
+            []
         , Html.input [ HA.placeholder "Description", HA.value model.newTaskDescription, HE.onInput UserEditedNewTaskDescription ] []
         , Html.button [ HE.onClick UserClickedAddTask ] [ Html.text "add" ]
         ]

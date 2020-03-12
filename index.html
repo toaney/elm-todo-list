@@ -5095,7 +5095,7 @@ var $author$project$Main$init = A3(
 		$author$project$Main$TaskDescription('make bed and vacuum'),
 		{
 			newTaskDescription: '',
-			newTaskName: '',
+			newTaskName: $author$project$Main$TaskName(''),
 			nextTaskId: $author$project$Main$Id(1),
 			tasks: _List_Nil
 		}));
@@ -10654,16 +10654,21 @@ var $author$project$Main$update = F2(
 			case 'UserClickedAddTask':
 				return A3(
 					$author$project$Main$addTask,
-					$author$project$Main$TaskName(model.newTaskName),
+					model.newTaskName,
 					$author$project$Main$TaskDescription(model.newTaskDescription),
 					_Utils_update(
 						model,
-						{newTaskDescription: '', newTaskName: ''}));
+						{
+							newTaskDescription: '',
+							newTaskName: $author$project$Main$TaskName('')
+						}));
 			case 'UserEditedNewTaskName':
 				var newName = msg.a;
 				return _Utils_update(
 					model,
-					{newTaskName: newName});
+					{
+						newTaskName: $author$project$Main$TaskName(newName)
+					});
 			case 'UserEditedNewTaskDescription':
 				var newDescription = msg.a;
 				return _Utils_update(
@@ -10697,7 +10702,8 @@ var $author$project$Main$newTaskView = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$placeholder('Name'),
-						$elm$html$Html$Attributes$value(model.newTaskName),
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$nameValue(model.newTaskName)),
 						$elm$html$Html$Events$onInput($author$project$Main$UserEditedNewTaskName)
 					]),
 				_List_Nil),
