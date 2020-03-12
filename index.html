@@ -5045,6 +5045,7 @@ var $author$project$Main$TaskName = function (a) {
 	return {$: 'TaskName', a: a};
 };
 var $author$project$Main$Collapsed = {$: 'Collapsed'};
+var $author$project$Main$NotEditing = {$: 'NotEditing'};
 var $author$project$Main$descriptionValue = function (_v0) {
 	var description = _v0.a;
 	return description;
@@ -5076,6 +5077,7 @@ var $author$project$Main$addTask = F3(
 					$elm$core$List$cons,
 					{
 						description: $author$project$Main$descriptionValue(description),
+						editNameState: $author$project$Main$NotEditing,
 						id: model.nextTaskId,
 						name: $author$project$Main$nameValue(name),
 						viewState: $author$project$Main$Collapsed
@@ -10650,9 +10652,27 @@ var $author$project$Main$deleteTask = F2(
 			},
 			tasks);
 	});
+var $author$project$Main$Editing = {$: 'Editing'};
 var $author$project$Main$startEditingTaskName = F2(
 	function (id, tasks) {
-		return tasks;
+		var startEditing = function (task) {
+			var _v0 = task.editNameState;
+			if (_v0.$ === 'Editing') {
+				return task;
+			} else {
+				return _Utils_update(
+					task,
+					{editNameState: $author$project$Main$Editing});
+			}
+		};
+		var startEditingIfId = F2(
+			function (thisId, task) {
+				return _Utils_eq(thisId, task.id) ? startEditing(task) : task;
+			});
+		return A2(
+			$elm$core$List$map,
+			startEditingIfId(id),
+			tasks);
 	});
 var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(

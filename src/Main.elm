@@ -27,12 +27,18 @@ type alias Task =
     , description : String
     , id : Id
     , viewState : TaskViewState
+    , editNameState : EditNameState
     }
 
 
 type TaskViewState
     = Expanded
     | Collapsed
+
+
+type EditNameState
+    = Editing
+    | NotEditing
 
 
 type alias Model =
@@ -112,7 +118,25 @@ deleteTask id tasks =
 
 startEditingTaskName : Id -> List Task -> List Task
 startEditingTaskName id tasks =
-    tasks
+    let
+        startEditing task =
+            case task.editNameState of
+                Editing ->
+                    task
+
+                NotEditing ->
+                    { task
+                        | editNameState = Editing
+                    }
+
+        startEditingIfId thisId task =
+            if thisId == task.id then
+                startEditing task
+
+            else
+                task
+    in
+    List.map (startEditingIfId id) tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task
@@ -143,7 +167,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description, viewState = Collapsed } :: model.tasks
+        | tasks = { name = nameValue name, id = model.nextTaskId, description = descriptionValue description, viewState = Collapsed, editNameState = NotEditing } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
