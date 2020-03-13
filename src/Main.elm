@@ -23,8 +23,7 @@ type TaskDescription
 
 
 type alias Task =
-    { name : TaskName
-    , editableName : EditableName
+    { editableName : EditableName
     , description : TaskDescription
     , id : Id
     , viewState : TaskViewState
@@ -242,7 +241,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = name, editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed, tempName = name } :: model.tasks
+        | tasks = { editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed, tempName = name } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
