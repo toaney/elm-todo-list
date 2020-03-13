@@ -1,5 +1,17 @@
 module Main exposing (EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
+{-| TODO
+
+1.  Make task.description editable
+2.  Rename task.editableName to task.name
+3.  Read up on type variables
+    <https://riptutorial.com/elm/example/8809/type-variables>
+    <https://elmprogramming.com/type-system.html>
+4.  TRY (stretch goal) combining `EditableName` and `EditableDescription` into a single `Editable a`,
+5.  TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
+
+-}
+
 import Browser
 import Html
 import Html.Attributes as HA
@@ -313,7 +325,7 @@ taskView task =
         Expanded ->
             Html.div []
                 [ taskNameView task
-                , Html.div [] [ Html.text (descriptionValue task.description) ]
+                , taskDescriptionView task
                 , deleteButtonView
                 ]
 
@@ -347,6 +359,11 @@ taskNameView task =
                 [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue taskName) ]
                 , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
+
+
+taskDescriptionView : Task -> Html.Html Msg
+taskDescriptionView task =
+    Html.div [] [ Html.text (descriptionValue task.description) ]
 
 
 main =

@@ -10874,6 +10874,16 @@ var $author$project$Main$newTaskView = function (model) {
 var $author$project$Main$UserClickedDeleteTask = function (a) {
 	return {$: 'UserClickedDeleteTask', a: a};
 };
+var $author$project$Main$taskDescriptionView = function (task) {
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				$elm$html$Html$text(
+				$author$project$Main$descriptionValue(task.description))
+			]));
+};
 var $author$project$Main$UserClickedCancelEditTaskName = function (a) {
 	return {$: 'UserClickedCancelEditTaskName', a: a};
 };
@@ -10999,14 +11009,7 @@ var $author$project$Main$taskView = function (task) {
 			_List_fromArray(
 				[
 					$author$project$Main$taskNameView(task),
-					A2(
-					$elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							$author$project$Main$descriptionValue(task.description))
-						])),
+					$author$project$Main$taskDescriptionView(task),
 					deleteButtonView
 				]));
 	}
