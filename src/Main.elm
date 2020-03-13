@@ -1,4 +1,4 @@
-module Main exposing (EditNameState(..), Id(..), Task, TaskViewState(..), deleteTask, main, toggleTaskViewState)
+module Main exposing (EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
 import Browser
 import Html
@@ -24,22 +24,22 @@ type TaskDescription
 
 type alias Task =
     { name : TaskName
+    , editableName : EditableName
     , description : TaskDescription
     , id : Id
     , viewState : TaskViewState
-    , editNameState : EditNameState
     , tempName : TaskName
     }
+
+
+type EditableName
+    = NotEditingName TaskName
+    | EditingName TaskName
 
 
 type TaskViewState
     = Expanded
     | Collapsed
-
-
-type EditNameState
-    = Editing
-    | NotEditing
 
 
 type alias Model =
@@ -158,9 +158,17 @@ editTaskForId id editFunction tasks =
 updateName : Id -> List Task -> List Task
 updateName id tasks =
     let
+        setEditableName editableName newTaskName =
+            case editableName of
+                EditingName _ ->
+                    EditingName newTaskName
+
+                NotEditingName _ ->
+                    NotEditingName newTaskName
+
         updateTaskName task =
             { task
-                | name = task.tempName
+                | editableName = setEditableName task.editableName task.tempName
                 , tempName = task.tempName
             }
     in
@@ -183,14 +191,14 @@ stopEditingTaskName id tasks =
     let
         stopEditing : Task -> Task
         stopEditing task =
-            case task.editNameState of
-                Editing ->
+            case task.editableName of
+                EditingName taskName ->
                     { task
-                        | editNameState = NotEditing
-                        , tempName = task.name
+                        | editableName = NotEditingName taskName
+                        , tempName = taskName
                     }
 
-                NotEditing ->
+                NotEditingName _ ->
                     task
     in
     editTaskForId id stopEditing tasks
@@ -201,13 +209,13 @@ startEditingTaskName id tasks =
     let
         startEditing : Task -> Task
         startEditing task =
-            case task.editNameState of
-                Editing ->
+            case task.editableName of
+                EditingName _ ->
                     task
 
-                NotEditing ->
+                NotEditingName taskName ->
                     { task
-                        | editNameState = Editing
+                        | editableName = EditingName taskName
                     }
     in
     editTaskForId id startEditing tasks
@@ -234,7 +242,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = name, id = model.nextTaskId, description = description, viewState = Collapsed, editNameState = NotEditing, tempName = name } :: model.tasks
+        | tasks = { name = name, editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed, tempName = name } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -313,8 +321,8 @@ taskView task =
 
 taskNameView : Task -> Html.Html Msg
 taskNameView task =
-    case task.editNameState of
-        Editing ->
+    case task.editableName of
+        EditingName taskName ->
             Html.div
                 []
                 -- [ HA.placeholder "Description"
@@ -326,7 +334,7 @@ taskNameView task =
                 -- , HE.onInput <| TaskName >> UserEditedNewTaskName
                 -- ]
                 [ Html.input
-                    [ HE.onInput (\taskName -> TaskName taskName |> UserEditedTaskName task.id)
+                    [ HE.onInput (\name -> TaskName name |> UserEditedTaskName task.id)
                     , HA.value (nameValue task.tempName)
                     ]
                     []
@@ -334,10 +342,10 @@ taskNameView task =
                 , Html.button [ HE.onClick (UserClickedCancelEditTaskName task.id) ] [ Html.text "cancel" ]
                 ]
 
-        NotEditing ->
+        NotEditingName taskName ->
             Html.div
                 []
-                [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue task.name) ]
+                [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue taskName) ]
                 , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
 

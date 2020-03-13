@@ -2,7 +2,7 @@ module MainTests exposing (suite)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Main exposing (EditNameState(..), Id(..), Task, TaskViewState(..))
+import Main exposing (EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..))
 import Test exposing (..)
 
 
@@ -28,7 +28,7 @@ deletingTaskTests =
         , test "Removes task for given id" <|
             \_ ->
                 Main.deleteTask (Id 2) taskList
-                    |> Expect.equalLists [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed, editNameState = NotEditing } ]
+                    |> Expect.equalLists [ { name = TaskName "task1", editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed, tempName = TaskName "task1" } ]
         ]
 
 
@@ -39,8 +39,8 @@ toggleTaskViewStateTests =
             \_ ->
                 Main.toggleTaskViewState (Id 1) taskList
                     |> Expect.equalLists
-                        [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Expanded, editNameState = NotEditing }
-                        , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
+                        [ { name = TaskName "task1", editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Expanded, tempName = TaskName "task1" }
+                        , { name = TaskName "task2", editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed, tempName = TaskName "task2" }
                         ]
         , test "Toggle task viewState twice ending in viewState Collapsed" <|
             \_ ->
@@ -61,6 +61,11 @@ toggleTaskViewStateTests =
 
 taskList : List Task
 taskList =
-    [ { description = "clean room description", id = Id 1, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
-    , { description = "buy groceries description", id = Id 2, name = "clean room name", viewState = Collapsed, editNameState = NotEditing }
+    [ { name = TaskName "task1", editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed, tempName = TaskName "task1" }
+    , { name = TaskName "task2", editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed, tempName = TaskName "task2" }
     ]
+
+
+
+-- |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum")
+-- |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice")
