@@ -1,4 +1,4 @@
-module Main exposing (EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
+module Main exposing (EditableDescription(..), EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
 {-| TODO
 
