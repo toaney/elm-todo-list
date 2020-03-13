@@ -28,7 +28,7 @@ deletingTaskTests =
         , test "Removes task for given id" <|
             \_ ->
                 Main.deleteTask (Id 2) taskList
-                    |> Expect.equalLists [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed, tempName = TaskName "task1" } ]
+                    |> Expect.equalLists [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed } ]
         ]
 
 
@@ -39,8 +39,8 @@ toggleTaskViewStateTests =
             \_ ->
                 Main.toggleTaskViewState (Id 1) taskList
                     |> Expect.equalLists
-                        [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Expanded, tempName = TaskName "task1" }
-                        , { editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed, tempName = TaskName "task2" }
+                        [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Expanded }
+                        , { editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed }
                         ]
         , test "Toggle task viewState twice ending in viewState Collapsed" <|
             \_ ->
@@ -61,8 +61,8 @@ toggleTaskViewStateTests =
 
 taskList : List Task
 taskList =
-    [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed, tempName = TaskName "task1" }
-    , { editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed, tempName = TaskName "task2" }
+    [ { editableName = NotEditingName (TaskName "task1"), id = Id 1, description = TaskDescription "task1 description", viewState = Collapsed }
+    , { editableName = NotEditingName (TaskName "task2"), id = Id 2, description = TaskDescription "task2 description", viewState = Collapsed }
     ]
 
 

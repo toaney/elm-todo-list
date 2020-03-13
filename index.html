@@ -5073,7 +5073,6 @@ var $author$project$Main$addTask = F3(
 						description: description,
 						editableName: $author$project$Main$NotEditingName(name),
 						id: model.nextTaskId,
-						tempName: name,
 						viewState: $author$project$Main$Collapsed
 					},
 					model.tasks)
@@ -10626,6 +10625,31 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $author$project$Main$editTaskForId = F3(
+	function (id, editFunction, tasks) {
+		var editTaskIfId = function (task) {
+			return _Utils_eq(id, task.id) ? editFunction(task) : task;
+		};
+		return A2($elm$core$List$map, editTaskIfId, tasks);
+	});
+var $author$project$Main$cancelEditingTaskName = F2(
+	function (id, tasks) {
+		var cancelEditing = function (task) {
+			var _v0 = task.editableName;
+			if (_v0.$ === 'EditingName') {
+				var originalValue = _v0.a.originalValue;
+				var buffer = _v0.a.buffer;
+				return _Utils_update(
+					task,
+					{
+						editableName: $author$project$Main$NotEditingName(originalValue)
+					});
+			} else {
+				return task;
+			}
+		};
+		return A3($author$project$Main$editTaskForId, id, cancelEditing, tasks);
+	});
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -10649,13 +10673,6 @@ var $author$project$Main$deleteTask = F2(
 var $author$project$Main$EditingName = function (a) {
 	return {$: 'EditingName', a: a};
 };
-var $author$project$Main$editTaskForId = F3(
-	function (id, editFunction, tasks) {
-		var editTaskIfId = function (task) {
-			return _Utils_eq(id, task.id) ? editFunction(task) : task;
-		};
-		return A2($elm$core$List$map, editTaskIfId, tasks);
-	});
 var $author$project$Main$startEditingTaskName = F2(
 	function (id, tasks) {
 		var startEditing = function (task) {
@@ -10667,7 +10684,8 @@ var $author$project$Main$startEditingTaskName = F2(
 				return _Utils_update(
 					task,
 					{
-						editableName: $author$project$Main$EditingName(taskName)
+						editableName: $author$project$Main$EditingName(
+							{buffer: taskName, originalValue: taskName})
 					});
 			}
 		};
@@ -10678,12 +10696,11 @@ var $author$project$Main$stopEditingTaskName = F2(
 		var stopEditing = function (task) {
 			var _v0 = task.editableName;
 			if (_v0.$ === 'EditingName') {
-				var taskName = _v0.a;
+				var buffer = _v0.a.buffer;
 				return _Utils_update(
 					task,
 					{
-						editableName: $author$project$Main$NotEditingName(taskName),
-						tempName: taskName
+						editableName: $author$project$Main$NotEditingName(buffer)
 					});
 			} else {
 				return task;
@@ -10708,34 +10725,23 @@ var $author$project$Main$toggleTaskViewState = F2(
 		};
 		return A3($author$project$Main$editTaskForId, id, toggleViewState, tasks);
 	});
-var $author$project$Main$updateName = F2(
-	function (id, tasks) {
-		var setEditableName = F2(
-			function (editableName, newTaskName) {
-				if (editableName.$ === 'EditingName') {
-					return $author$project$Main$EditingName(newTaskName);
-				} else {
-					return $author$project$Main$NotEditingName(newTaskName);
-				}
-			});
-		var updateTaskName = function (task) {
-			return _Utils_update(
-				task,
-				{
-					editableName: A2(setEditableName, task.editableName, task.tempName),
-					tempName: task.tempName
-				});
-		};
-		return A3($author$project$Main$editTaskForId, id, updateTaskName, tasks);
-	});
-var $author$project$Main$updateTempName = F3(
+var $author$project$Main$updateTaskNameBuffer = F3(
 	function (id, temporaryName, tasks) {
-		var newTempName = function (task) {
-			return _Utils_update(
-				task,
-				{tempName: temporaryName});
+		var setBuffer = function (task) {
+			var _v0 = task.editableName;
+			if (_v0.$ === 'EditingName') {
+				var originalValue = _v0.a.originalValue;
+				return _Utils_update(
+					task,
+					{
+						editableName: $author$project$Main$EditingName(
+							{buffer: temporaryName, originalValue: originalValue})
+					});
+			} else {
+				return task;
+			}
 		};
-		return A3($author$project$Main$editTaskForId, id, newTempName, tasks);
+		return A3($author$project$Main$editTaskForId, id, setBuffer, tasks);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -10787,17 +10793,14 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2(
-							$author$project$Main$stopEditingTaskName,
-							taskId,
-							A2($author$project$Main$updateName, taskId, model.tasks))
+						tasks: A2($author$project$Main$stopEditingTaskName, taskId, model.tasks)
 					});
 			case 'UserClickedCancelEditTaskName':
 				var taskId = msg.a;
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$stopEditingTaskName, taskId, model.tasks)
+						tasks: A2($author$project$Main$cancelEditingTaskName, taskId, model.tasks)
 					});
 			default:
 				var taskId = msg.a;
@@ -10805,7 +10808,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A3($author$project$Main$updateTempName, taskId, editedTaskName, model.tasks)
+						tasks: A3($author$project$Main$updateTaskNameBuffer, taskId, editedTaskName, model.tasks)
 					});
 		}
 	});
@@ -10890,7 +10893,7 @@ var $author$project$Main$UserEditedTaskName = F2(
 var $author$project$Main$taskNameView = function (task) {
 	var _v0 = task.editableName;
 	if (_v0.$ === 'EditingName') {
-		var taskName = _v0.a;
+		var buffer = _v0.a.buffer;
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
@@ -10908,7 +10911,7 @@ var $author$project$Main$taskNameView = function (task) {
 									$author$project$Main$TaskName(name));
 							}),
 							$elm$html$Html$Attributes$value(
-							$author$project$Main$nameValue(task.tempName))
+							$author$project$Main$nameValue(buffer))
 						]),
 					_List_Nil),
 					A2(

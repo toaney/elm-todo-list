@@ -27,13 +27,12 @@ type alias Task =
     , description : TaskDescription
     , id : Id
     , viewState : TaskViewState
-    , tempName : TaskName
     }
 
 
 type EditableName
     = NotEditingName TaskName
-    | EditingName TaskName
+    | EditingName { originalValue : TaskName, buffer : TaskName }
 
 
 type TaskViewState
@@ -115,17 +114,17 @@ update msg model =
 
         UserClickedSaveEditTaskName taskId ->
             { model
-                | tasks = updateName taskId model.tasks |> stopEditingTaskName taskId
+                | tasks = stopEditingTaskName taskId model.tasks
             }
 
         UserClickedCancelEditTaskName taskId ->
             { model
-                | tasks = stopEditingTaskName taskId model.tasks
+                | tasks = cancelEditingTaskName taskId model.tasks
             }
 
         UserEditedTaskName taskId editedTaskName ->
             { model
-                | tasks = updateTempName taskId editedTaskName model.tasks
+                | tasks = updateTaskNameBuffer taskId editedTaskName model.tasks
             }
 
 
@@ -154,35 +153,20 @@ editTaskForId id editFunction tasks =
     List.map editTaskIfId tasks
 
 
-updateName : Id -> List Task -> List Task
-updateName id tasks =
+updateTaskNameBuffer : Id -> TaskName -> List Task -> List Task
+updateTaskNameBuffer id temporaryName tasks =
     let
-        setEditableName editableName newTaskName =
-            case editableName of
-                EditingName _ ->
-                    EditingName newTaskName
+        setBuffer task =
+            case task.editableName of
+                EditingName { originalValue } ->
+                    { task
+                        | editableName = EditingName { originalValue = originalValue, buffer = temporaryName }
+                    }
 
                 NotEditingName _ ->
-                    NotEditingName newTaskName
-
-        updateTaskName task =
-            { task
-                | editableName = setEditableName task.editableName task.tempName
-                , tempName = task.tempName
-            }
+                    task
     in
-    editTaskForId id updateTaskName tasks
-
-
-updateTempName : Id -> TaskName -> List Task -> List Task
-updateTempName id temporaryName tasks =
-    let
-        newTempName task =
-            { task
-                | tempName = temporaryName
-            }
-    in
-    editTaskForId id newTempName tasks
+    editTaskForId id setBuffer tasks
 
 
 stopEditingTaskName : Id -> List Task -> List Task
@@ -191,16 +175,32 @@ stopEditingTaskName id tasks =
         stopEditing : Task -> Task
         stopEditing task =
             case task.editableName of
-                EditingName taskName ->
+                EditingName { buffer } ->
                     { task
-                        | editableName = NotEditingName taskName
-                        , tempName = taskName
+                        | editableName = NotEditingName buffer
                     }
 
                 NotEditingName _ ->
                     task
     in
     editTaskForId id stopEditing tasks
+
+
+cancelEditingTaskName : Id -> List Task -> List Task
+cancelEditingTaskName id tasks =
+    let
+        cancelEditing : Task -> Task
+        cancelEditing task =
+            case task.editableName of
+                EditingName { originalValue, buffer } ->
+                    { task
+                        | editableName = NotEditingName originalValue
+                    }
+
+                NotEditingName _ ->
+                    task
+    in
+    editTaskForId id cancelEditing tasks
 
 
 startEditingTaskName : Id -> List Task -> List Task
@@ -214,7 +214,7 @@ startEditingTaskName id tasks =
 
                 NotEditingName taskName ->
                     { task
-                        | editableName = EditingName taskName
+                        | editableName = EditingName { originalValue = taskName, buffer = taskName }
                     }
     in
     editTaskForId id startEditing tasks
@@ -241,7 +241,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed, tempName = name } :: model.tasks
+        | tasks = { editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -321,7 +321,7 @@ taskView task =
 taskNameView : Task -> Html.Html Msg
 taskNameView task =
     case task.editableName of
-        EditingName taskName ->
+        EditingName { buffer } ->
             Html.div
                 []
                 -- [ HA.placeholder "Description"
@@ -334,7 +334,7 @@ taskNameView task =
                 -- ]
                 [ Html.input
                     [ HE.onInput (\name -> TaskName name |> UserEditedTaskName task.id)
-                    , HA.value (nameValue task.tempName)
+                    , HA.value (nameValue buffer)
                     ]
                     []
                 , Html.button [ HE.onClick (UserClickedSaveEditTaskName task.id) ] [ Html.text "save" ]
