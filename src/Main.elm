@@ -36,7 +36,7 @@ type TaskDescription
 
 type alias Task =
     { editableName : EditableName
-    , description : TaskDescription
+    , description : EditableDescription
     , id : Id
     , viewState : TaskViewState
     }
@@ -45,6 +45,11 @@ type alias Task =
 type EditableName
     = NotEditingName TaskName
     | EditingName { originalValue : TaskName, buffer : TaskName }
+
+
+type EditableDescription
+    = NotEditingDescription TaskDescription
+    | EditingDescription { originalDescription : TaskDescription, descriptionBuffer : TaskDescription }
 
 
 type TaskViewState
@@ -86,6 +91,7 @@ type Msg
     | UserClickedSaveEditTaskName Id
     | UserClickedCancelEditTaskName Id
     | UserEditedTaskName Id TaskName
+    | UserClickedEditTaskDescription Id
 
 
 update : Msg -> Model -> Model
@@ -139,6 +145,17 @@ update msg model =
                 | tasks = updateTaskNameBuffer taskId editedTaskName model.tasks
             }
 
+        UserClickedEditTaskDescription taskId ->
+            { model
+                | tasks = startEditingTaskDescription taskId model.tasks
+            }
+
+
+
+-- { model
+--     | tasks = updateTaskDescriptionBuffer taskId model.tasks
+-- }
+
 
 deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
@@ -179,6 +196,22 @@ updateTaskNameBuffer id temporaryName tasks =
                     task
     in
     editTaskForId id setBuffer tasks
+
+
+
+-- updateDescriptionNameBuffer : Id -> TaskDescription -> List Task -> List Task
+-- updateDescriptionNameBuffer id temporaryDescription tasks =
+--     let
+--         setDescriptionBuffer task =
+--             case task.description of
+--                 EditingDescription { temporaryDescription } ->
+--                     { task
+--                         | description = EditingDescription { originalValue = originalValue, buffer = temporaryDescription }
+--                     }
+--                 NotEditingDescription _ ->
+--                     task
+--     in
+--     editTaskForid id setDescriptionBuffer tasks
 
 
 stopEditingTaskName : Id -> List Task -> List Task
@@ -232,6 +265,23 @@ startEditingTaskName id tasks =
     editTaskForId id startEditing tasks
 
 
+startEditingTaskDescription : Id -> List Task -> List Task
+startEditingTaskDescription id tasks =
+    let
+        startEditingDescription : Task -> Task
+        startEditingDescription task =
+            case task.description of
+                EditingDescription _ ->
+                    task
+
+                NotEditingDescription taskDescription ->
+                    { task
+                        | description = EditingDescription { originalDescription = taskDescription, descriptionBuffer = taskDescription }
+                    }
+    in
+    editTaskForId id startEditingDescription tasks
+
+
 toggleTaskViewState : Id -> List Task -> List Task
 toggleTaskViewState id tasks =
     let
@@ -253,7 +303,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { editableName = NotEditingName name, id = model.nextTaskId, description = description, viewState = Collapsed } :: model.tasks
+        | tasks = { editableName = NotEditingName name, id = model.nextTaskId, description = NotEditingDescription description, viewState = Collapsed } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -363,7 +413,24 @@ taskNameView task =
 
 taskDescriptionView : Task -> Html.Html Msg
 taskDescriptionView task =
-    Html.div [] [ Html.text (descriptionValue task.description) ]
+    case task.description of
+        EditingDescription { descriptionBuffer } ->
+            Html.div
+                []
+                [ Html.input
+                    [ HA.value (descriptionValue descriptionBuffer)
+                    ]
+                    []
+                , Html.button [] [ Html.text "save" ]
+                , Html.button [] [ Html.text "cancel" ]
+                ]
+
+        NotEditingDescription taskDescription ->
+            Html.div
+                []
+                [ Html.text (descriptionValue taskDescription)
+                , Html.button [ HE.onClick (UserClickedEditTaskDescription task.id) ] [ Html.text "edit" ]
+                ]
 
 
 main =
