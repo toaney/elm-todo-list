@@ -92,6 +92,9 @@ type Msg
     | UserClickedCancelEditTaskName Id
     | UserEditedTaskName Id TaskName
     | UserClickedEditTaskDescription Id
+    | UserClickedSaveEditTaskDescription Id
+    | UserClickedCancelEditTaskDescription Id
+    | UserEditedTaskDescription Id TaskDescription
 
 
 update : Msg -> Model -> Model
@@ -150,6 +153,21 @@ update msg model =
                 | tasks = startEditingTaskDescription taskId model.tasks
             }
 
+        UserClickedSaveEditTaskDescription taskId ->
+            { model
+                | tasks = stopEditingTaskDescription taskId model.tasks
+            }
+
+        UserClickedCancelEditTaskDescription taskId ->
+            { model
+                | tasks = cancelEditingTaskDescription taskId model.tasks
+            }
+
+        UserEditedTaskDescription taskId editedTaskDescription ->
+            { model
+                | tasks = updateTaskDescriptionBuffer taskId editedTaskDescription model.tasks
+            }
+
 
 
 -- { model
@@ -198,20 +216,20 @@ updateTaskNameBuffer id temporaryName tasks =
     editTaskForId id setBuffer tasks
 
 
+updateTaskDescriptionBuffer : Id -> TaskDescription -> List Task -> List Task
+updateTaskDescriptionBuffer id temporaryDescription tasks =
+    let
+        setDescriptionBuffer task =
+            case task.description of
+                EditingDescription { originalDescription } ->
+                    { task
+                        | description = EditingDescription { originalDescription = originalDescription, descriptionBuffer = temporaryDescription }
+                    }
 
--- updateDescriptionNameBuffer : Id -> TaskDescription -> List Task -> List Task
--- updateDescriptionNameBuffer id temporaryDescription tasks =
---     let
---         setDescriptionBuffer task =
---             case task.description of
---                 EditingDescription { temporaryDescription } ->
---                     { task
---                         | description = EditingDescription { originalValue = originalValue, buffer = temporaryDescription }
---                     }
---                 NotEditingDescription _ ->
---                     task
---     in
---     editTaskForid id setDescriptionBuffer tasks
+                NotEditingDescription _ ->
+                    task
+    in
+    editTaskForId id setDescriptionBuffer tasks
 
 
 stopEditingTaskName : Id -> List Task -> List Task
@@ -231,6 +249,23 @@ stopEditingTaskName id tasks =
     editTaskForId id stopEditing tasks
 
 
+stopEditingTaskDescription : Id -> List Task -> List Task
+stopEditingTaskDescription id tasks =
+    let
+        stopEditingDescription : Task -> Task
+        stopEditingDescription task =
+            case task.description of
+                EditingDescription { descriptionBuffer } ->
+                    { task
+                        | description = NotEditingDescription descriptionBuffer
+                    }
+
+                NotEditingDescription _ ->
+                    task
+    in
+    editTaskForId id stopEditingDescription tasks
+
+
 cancelEditingTaskName : Id -> List Task -> List Task
 cancelEditingTaskName id tasks =
     let
@@ -243,6 +278,23 @@ cancelEditingTaskName id tasks =
                     }
 
                 NotEditingName _ ->
+                    task
+    in
+    editTaskForId id cancelEditing tasks
+
+
+cancelEditingTaskDescription : Id -> List Task -> List Task
+cancelEditingTaskDescription id tasks =
+    let
+        cancelEditing : Task -> Task
+        cancelEditing task =
+            case task.description of
+                EditingDescription { originalDescription, descriptionBuffer } ->
+                    { task
+                        | description = NotEditingDescription originalDescription
+                    }
+
+                NotEditingDescription _ ->
                     task
     in
     editTaskForId id cancelEditing tasks
@@ -418,11 +470,12 @@ taskDescriptionView task =
             Html.div
                 []
                 [ Html.input
-                    [ HA.value (descriptionValue descriptionBuffer)
+                    [ HE.onInput (\description -> TaskDescription description |> UserEditedTaskDescription task.id)
+                    , HA.value (descriptionValue descriptionBuffer)
                     ]
                     []
-                , Html.button [] [ Html.text "save" ]
-                , Html.button [] [ Html.text "cancel" ]
+                , Html.button [ HE.onClick (UserClickedSaveEditTaskDescription task.id) ] [ Html.text "save" ]
+                , Html.button [ HE.onClick (UserClickedCancelEditTaskDescription task.id) ] [ Html.text "cancel" ]
                 ]
 
         NotEditingDescription taskDescription ->
