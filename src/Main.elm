@@ -1,14 +1,14 @@
-module Main exposing (EditableDescription(..), EditableName(..), Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
+module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
 
 {-| TODO
 
-1.  Make task.description editable
-2.  Rename task.editableName to task.name
-3.  Read up on type variables
+1.  ✓ Make task.description editable
+2.  ✓ Rename task.editableName to task.name
+3.  ✓ Read up on type variables
     <https://riptutorial.com/elm/example/8809/type-variables>
     <https://elmprogramming.com/type-system.html>
-4.  TRY (stretch goal) combining `EditableName` and `EditableDescription` into a single `Editable a`,
-5.  TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
+4.  ✓ TRY (stretch goal) combining `EditableName` and `EditableDescription` into a single `Editable a`,
+5.  ~ TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
 
 -}
 
@@ -35,21 +35,25 @@ type TaskDescription
 
 
 type alias Task =
-    { name : EditableName
-    , description : EditableDescription
+    { name : Editable TaskName
+    , description : Editable TaskDescription
     , id : Id
     , viewState : TaskViewState
     }
 
 
-type EditableName
-    = NotEditingName TaskName
-    | EditingName { originalValue : TaskName, buffer : TaskName }
+type Editable a
+    = NotEditing a
+    | Editing { originalValue : a, buffer : a }
 
 
-type EditableDescription
-    = NotEditingDescription TaskDescription
-    | EditingDescription { originalDescription : TaskDescription, descriptionBuffer : TaskDescription }
+
+-- type EditableName
+--     = NotEditingName TaskName
+--     | EditingName { originalValue : TaskName, buffer : TaskName }
+-- type EditableDescription
+--     = NotEditingDescription TaskDescription
+--     | EditingDescription { originalDescription : TaskDescription, descriptionBuffer : TaskDescription }
 
 
 type TaskViewState
@@ -130,7 +134,7 @@ update msg model =
 
         UserClickedEditTaskName taskId ->
             { model
-                | tasks = startEditingTaskName taskId model.tasks
+                | tasks = startEditingTask "name" taskId model.tasks
             }
 
         UserClickedSaveEditTaskName taskId ->
@@ -150,7 +154,7 @@ update msg model =
 
         UserClickedEditTaskDescription taskId ->
             { model
-                | tasks = startEditingTaskDescription taskId model.tasks
+                | tasks = startEditingTask "description" taskId model.tasks
             }
 
         UserClickedSaveEditTaskDescription taskId ->
@@ -205,12 +209,12 @@ updateTaskNameBuffer id temporaryName tasks =
     let
         setBuffer task =
             case task.name of
-                EditingName { originalValue } ->
+                Editing { originalValue } ->
                     { task
-                        | name = EditingName { originalValue = originalValue, buffer = temporaryName }
+                        | name = Editing { originalValue = originalValue, buffer = temporaryName }
                     }
 
-                NotEditingName _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id setBuffer tasks
@@ -221,12 +225,12 @@ updateTaskDescriptionBuffer id temporaryDescription tasks =
     let
         setDescriptionBuffer task =
             case task.description of
-                EditingDescription { originalDescription } ->
+                Editing { originalValue } ->
                     { task
-                        | description = EditingDescription { originalDescription = originalDescription, descriptionBuffer = temporaryDescription }
+                        | description = Editing { originalValue = originalValue, buffer = temporaryDescription }
                     }
 
-                NotEditingDescription _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id setDescriptionBuffer tasks
@@ -238,12 +242,12 @@ stopEditingTaskName id tasks =
         stopEditing : Task -> Task
         stopEditing task =
             case task.name of
-                EditingName { buffer } ->
+                Editing { buffer } ->
                     { task
-                        | name = NotEditingName buffer
+                        | name = NotEditing buffer
                     }
 
-                NotEditingName _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id stopEditing tasks
@@ -255,12 +259,12 @@ stopEditingTaskDescription id tasks =
         stopEditingDescription : Task -> Task
         stopEditingDescription task =
             case task.description of
-                EditingDescription { descriptionBuffer } ->
+                Editing { buffer } ->
                     { task
-                        | description = NotEditingDescription descriptionBuffer
+                        | description = NotEditing buffer
                     }
 
-                NotEditingDescription _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id stopEditingDescription tasks
@@ -272,12 +276,12 @@ cancelEditingTaskName id tasks =
         cancelEditing : Task -> Task
         cancelEditing task =
             case task.name of
-                EditingName { originalValue, buffer } ->
+                Editing { originalValue, buffer } ->
                     { task
-                        | name = NotEditingName originalValue
+                        | name = NotEditing originalValue
                     }
 
-                NotEditingName _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id cancelEditing tasks
@@ -289,49 +293,82 @@ cancelEditingTaskDescription id tasks =
         cancelEditing : Task -> Task
         cancelEditing task =
             case task.description of
-                EditingDescription { originalDescription, descriptionBuffer } ->
+                Editing { originalValue, buffer } ->
                     { task
-                        | description = NotEditingDescription originalDescription
+                        | description = NotEditing originalValue
                     }
 
-                NotEditingDescription _ ->
+                NotEditing _ ->
                     task
     in
     editTaskForId id cancelEditing tasks
 
 
-startEditingTaskName : Id -> List Task -> List Task
-startEditingTaskName id tasks =
+startEditingTask : String -> Id -> List Task -> List Task
+startEditingTask taskfield id tasks =
     let
         startEditing : Task -> Task
         startEditing task =
             case task.name of
-                EditingName _ ->
+                Editing _ ->
                     task
 
-                NotEditingName taskName ->
+                NotEditing taskName ->
                     { task
-                        | name = EditingName { originalValue = taskName, buffer = taskName }
+                        | name = Editing { originalValue = taskName, buffer = taskName }
                     }
-    in
-    editTaskForId id startEditing tasks
 
-
-startEditingTaskDescription : Id -> List Task -> List Task
-startEditingTaskDescription id tasks =
-    let
         startEditingDescription : Task -> Task
         startEditingDescription task =
             case task.description of
-                EditingDescription _ ->
+                Editing _ ->
                     task
 
-                NotEditingDescription taskDescription ->
+                NotEditing taskDescription ->
                     { task
-                        | description = EditingDescription { originalDescription = taskDescription, descriptionBuffer = taskDescription }
+                        | description = Editing { originalValue = taskDescription, buffer = taskDescription }
                     }
     in
-    editTaskForId id startEditingDescription tasks
+    case taskfield of
+        "name" ->
+            editTaskForId id startEditing tasks
+
+        "description" ->
+            editTaskForId id startEditingDescription tasks
+
+        _ ->
+            tasks
+
+
+
+-- startEditingTaskName : Id -> List Task -> List Task
+-- startEditingTaskName id tasks =
+--     let
+--         startEditing : Task -> Task
+--         startEditing task =
+--             case task.name of
+--                 Editing _ ->
+--                     task
+--                 NotEditing taskName ->
+--                     { task
+--                         | name = Editing { originalValue = taskName, buffer = taskName }
+--                     }
+--     in
+--     editTaskForId id startEditing tasks
+-- startEditingTaskDescription : Id -> List Task -> List Task
+-- startEditingTaskDescription id tasks =
+--     let
+--         startEditingDescription : Task -> Task
+--         startEditingDescription task =
+--             case task.description of
+--                 Editing _ ->
+--                     task
+--                 NotEditing taskDescription ->
+--                     { task
+--                         | description = Editing { originalValue = taskDescription, buffer = taskDescription }
+--                     }
+--     in
+--     editTaskForId id startEditingDescription tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task
@@ -355,7 +392,7 @@ toggleTaskViewState id tasks =
 addTask : TaskName -> TaskDescription -> Model -> Model
 addTask name description model =
     { model
-        | tasks = { name = NotEditingName name, id = model.nextTaskId, description = NotEditingDescription description, viewState = Collapsed } :: model.tasks
+        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -435,7 +472,7 @@ taskView task =
 taskNameView : Task -> Html.Html Msg
 taskNameView task =
     case task.name of
-        EditingName { buffer } ->
+        Editing { buffer } ->
             Html.div
                 []
                 -- [ HA.placeholder "Description"
@@ -455,7 +492,7 @@ taskNameView task =
                 , Html.button [ HE.onClick (UserClickedCancelEditTaskName task.id) ] [ Html.text "cancel" ]
                 ]
 
-        NotEditingName taskName ->
+        NotEditing taskName ->
             Html.div
                 []
                 [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue taskName) ]
@@ -466,19 +503,19 @@ taskNameView task =
 taskDescriptionView : Task -> Html.Html Msg
 taskDescriptionView task =
     case task.description of
-        EditingDescription { descriptionBuffer } ->
+        Editing { buffer } ->
             Html.div
                 []
                 [ Html.input
                     [ HE.onInput (\description -> TaskDescription description |> UserEditedTaskDescription task.id)
-                    , HA.value (descriptionValue descriptionBuffer)
+                    , HA.value (descriptionValue buffer)
                     ]
                     []
                 , Html.button [ HE.onClick (UserClickedSaveEditTaskDescription task.id) ] [ Html.text "save" ]
                 , Html.button [ HE.onClick (UserClickedCancelEditTaskDescription task.id) ] [ Html.text "cancel" ]
                 ]
 
-        NotEditingDescription taskDescription ->
+        NotEditing taskDescription ->
             Html.div
                 []
                 [ Html.text (descriptionValue taskDescription)

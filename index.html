@@ -5045,11 +5045,8 @@ var $author$project$Main$TaskName = function (a) {
 	return {$: 'TaskName', a: a};
 };
 var $author$project$Main$Collapsed = {$: 'Collapsed'};
-var $author$project$Main$NotEditingDescription = function (a) {
-	return {$: 'NotEditingDescription', a: a};
-};
-var $author$project$Main$NotEditingName = function (a) {
-	return {$: 'NotEditingName', a: a};
+var $author$project$Main$NotEditing = function (a) {
+	return {$: 'NotEditing', a: a};
 };
 var $elm$core$Basics$add = _Basics_add;
 var $author$project$Main$mapId = F2(
@@ -5073,9 +5070,9 @@ var $author$project$Main$addTask = F3(
 				tasks: A2(
 					$elm$core$List$cons,
 					{
-						description: $author$project$Main$NotEditingDescription(description),
+						description: $author$project$Main$NotEditing(description),
 						id: model.nextTaskId,
-						name: $author$project$Main$NotEditingName(name),
+						name: $author$project$Main$NotEditing(name),
 						viewState: $author$project$Main$Collapsed
 					},
 					model.tasks)
@@ -10639,13 +10636,13 @@ var $author$project$Main$cancelEditingTaskDescription = F2(
 	function (id, tasks) {
 		var cancelEditing = function (task) {
 			var _v0 = task.description;
-			if (_v0.$ === 'EditingDescription') {
-				var originalDescription = _v0.a.originalDescription;
-				var descriptionBuffer = _v0.a.descriptionBuffer;
+			if (_v0.$ === 'Editing') {
+				var originalValue = _v0.a.originalValue;
+				var buffer = _v0.a.buffer;
 				return _Utils_update(
 					task,
 					{
-						description: $author$project$Main$NotEditingDescription(originalDescription)
+						description: $author$project$Main$NotEditing(originalValue)
 					});
 			} else {
 				return task;
@@ -10657,13 +10654,13 @@ var $author$project$Main$cancelEditingTaskName = F2(
 	function (id, tasks) {
 		var cancelEditing = function (task) {
 			var _v0 = task.name;
-			if (_v0.$ === 'EditingName') {
+			if (_v0.$ === 'Editing') {
 				var originalValue = _v0.a.originalValue;
 				var buffer = _v0.a.buffer;
 				return _Utils_update(
 					task,
 					{
-						name: $author$project$Main$NotEditingName(originalValue)
+						name: $author$project$Main$NotEditing(originalValue)
 					});
 			} else {
 				return task;
@@ -10691,58 +10688,58 @@ var $author$project$Main$deleteTask = F2(
 			},
 			tasks);
 	});
-var $author$project$Main$EditingDescription = function (a) {
-	return {$: 'EditingDescription', a: a};
+var $author$project$Main$Editing = function (a) {
+	return {$: 'Editing', a: a};
 };
-var $author$project$Main$startEditingTaskDescription = F2(
-	function (id, tasks) {
+var $author$project$Main$startEditingTask = F3(
+	function (taskfield, id, tasks) {
 		var startEditingDescription = function (task) {
-			var _v0 = task.description;
-			if (_v0.$ === 'EditingDescription') {
+			var _v2 = task.description;
+			if (_v2.$ === 'Editing') {
 				return task;
 			} else {
-				var taskDescription = _v0.a;
+				var taskDescription = _v2.a;
 				return _Utils_update(
 					task,
 					{
-						description: $author$project$Main$EditingDescription(
-							{descriptionBuffer: taskDescription, originalDescription: taskDescription})
+						description: $author$project$Main$Editing(
+							{buffer: taskDescription, originalValue: taskDescription})
 					});
 			}
 		};
-		return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
-	});
-var $author$project$Main$EditingName = function (a) {
-	return {$: 'EditingName', a: a};
-};
-var $author$project$Main$startEditingTaskName = F2(
-	function (id, tasks) {
 		var startEditing = function (task) {
-			var _v0 = task.name;
-			if (_v0.$ === 'EditingName') {
+			var _v1 = task.name;
+			if (_v1.$ === 'Editing') {
 				return task;
 			} else {
-				var taskName = _v0.a;
+				var taskName = _v1.a;
 				return _Utils_update(
 					task,
 					{
-						name: $author$project$Main$EditingName(
+						name: $author$project$Main$Editing(
 							{buffer: taskName, originalValue: taskName})
 					});
 			}
 		};
-		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
+		switch (taskfield) {
+			case 'name':
+				return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
+			case 'description':
+				return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
+			default:
+				return tasks;
+		}
 	});
 var $author$project$Main$stopEditingTaskDescription = F2(
 	function (id, tasks) {
 		var stopEditingDescription = function (task) {
 			var _v0 = task.description;
-			if (_v0.$ === 'EditingDescription') {
-				var descriptionBuffer = _v0.a.descriptionBuffer;
+			if (_v0.$ === 'Editing') {
+				var buffer = _v0.a.buffer;
 				return _Utils_update(
 					task,
 					{
-						description: $author$project$Main$NotEditingDescription(descriptionBuffer)
+						description: $author$project$Main$NotEditing(buffer)
 					});
 			} else {
 				return task;
@@ -10754,12 +10751,12 @@ var $author$project$Main$stopEditingTaskName = F2(
 	function (id, tasks) {
 		var stopEditing = function (task) {
 			var _v0 = task.name;
-			if (_v0.$ === 'EditingName') {
+			if (_v0.$ === 'Editing') {
 				var buffer = _v0.a.buffer;
 				return _Utils_update(
 					task,
 					{
-						name: $author$project$Main$NotEditingName(buffer)
+						name: $author$project$Main$NotEditing(buffer)
 					});
 			} else {
 				return task;
@@ -10788,13 +10785,13 @@ var $author$project$Main$updateTaskDescriptionBuffer = F3(
 	function (id, temporaryDescription, tasks) {
 		var setDescriptionBuffer = function (task) {
 			var _v0 = task.description;
-			if (_v0.$ === 'EditingDescription') {
-				var originalDescription = _v0.a.originalDescription;
+			if (_v0.$ === 'Editing') {
+				var originalValue = _v0.a.originalValue;
 				return _Utils_update(
 					task,
 					{
-						description: $author$project$Main$EditingDescription(
-							{descriptionBuffer: temporaryDescription, originalDescription: originalDescription})
+						description: $author$project$Main$Editing(
+							{buffer: temporaryDescription, originalValue: originalValue})
 					});
 			} else {
 				return task;
@@ -10806,12 +10803,12 @@ var $author$project$Main$updateTaskNameBuffer = F3(
 	function (id, temporaryName, tasks) {
 		var setBuffer = function (task) {
 			var _v0 = task.name;
-			if (_v0.$ === 'EditingName') {
+			if (_v0.$ === 'Editing') {
 				var originalValue = _v0.a.originalValue;
 				return _Utils_update(
 					task,
 					{
-						name: $author$project$Main$EditingName(
+						name: $author$project$Main$Editing(
 							{buffer: temporaryName, originalValue: originalValue})
 					});
 			} else {
@@ -10863,7 +10860,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$startEditingTaskName, taskId, model.tasks)
+						tasks: A3($author$project$Main$startEditingTask, 'name', taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskName':
 				var taskId = msg.a;
@@ -10892,7 +10889,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$startEditingTaskDescription, taskId, model.tasks)
+						tasks: A3($author$project$Main$startEditingTask, 'description', taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskDescription':
 				var taskId = msg.a;
@@ -10995,8 +10992,8 @@ var $author$project$Main$UserEditedTaskDescription = F2(
 	});
 var $author$project$Main$taskDescriptionView = function (task) {
 	var _v0 = task.description;
-	if (_v0.$ === 'EditingDescription') {
-		var descriptionBuffer = _v0.a.descriptionBuffer;
+	if (_v0.$ === 'Editing') {
+		var buffer = _v0.a.buffer;
 		return A2(
 			$elm$html$Html$div,
 			_List_Nil,
@@ -11014,7 +11011,7 @@ var $author$project$Main$taskDescriptionView = function (task) {
 									$author$project$Main$TaskDescription(description));
 							}),
 							$elm$html$Html$Attributes$value(
-							$author$project$Main$descriptionValue(descriptionBuffer))
+							$author$project$Main$descriptionValue(buffer))
 						]),
 					_List_Nil),
 					A2(
@@ -11081,7 +11078,7 @@ var $author$project$Main$UserEditedTaskName = F2(
 	});
 var $author$project$Main$taskNameView = function (task) {
 	var _v0 = task.name;
-	if (_v0.$ === 'EditingName') {
+	if (_v0.$ === 'Editing') {
 		var buffer = _v0.a.buffer;
 		return A2(
 			$elm$html$Html$div,
