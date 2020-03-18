@@ -139,7 +139,7 @@ update msg model =
 
         UserClickedEditTaskName taskId ->
             { model
-                | tasks = startEditingTaskName taskId model.tasks
+                | tasks = editTaskForId taskId startEditingName model.tasks
             }
 
         UserClickedSaveEditTaskName taskId ->
@@ -159,7 +159,7 @@ update msg model =
 
         UserClickedEditTaskDescription taskId ->
             { model
-                | tasks = startEditingTaskDescription taskId model.tasks
+                | tasks = editTaskForId taskId startEditingDescription model.tasks
             }
 
         UserClickedSaveEditTaskDescription taskId ->
@@ -309,41 +309,8 @@ cancelEditingTaskDescription id tasks =
     editTaskForId id cancelEditing tasks
 
 
-
--- startEditingTask : TaskEditableField -> Id -> List Task -> List Task
--- startEditingTask taskfield id tasks =
---     let
---         startEditing : Task -> Task
---         startEditing task =
---             case task.name of
---                 Editing _ ->
---                     task
---                 NotEditing taskName ->
---                     { task
---                         | name = Editing { originalValue = taskName, buffer = taskName }
---                     }
---         startEditingDescription : Task -> Task
---         startEditingDescription task =
---             { task
---             | description = startEditing task.description
---             }
---             case task.description of
---                 Editing _ ->
---                     task
---                 NotEditing taskDescription ->
---                     { task
---                         | description = Editing { originalValue = taskDescription, buffer = taskDescription }
---                     }
---     in
---     case taskfield of
---         TaskEditableName ->
---             editTaskForId id startEditing tasks
---         TaskEditableDescription ->
---             editTaskForId id startEditingDescription tasks
-
-
-setEditing : Editable a -> Editable a
-setEditing editable =
+startEditing : Editable a -> Editable a
+startEditing editable =
     case editable of
         Editing _ ->
             editable
@@ -352,28 +319,18 @@ setEditing editable =
             Editing { originalValue = value, buffer = value }
 
 
-startEditingTaskName : Id -> List Task -> List Task
-startEditingTaskName id tasks =
-    let
-        startEditing : Task -> Task
-        startEditing task =
-            { task
-                | name = setEditing task.name
-            }
-    in
-    editTaskForId id startEditing tasks
+startEditingName : Task -> Task
+startEditingName task =
+    { task
+        | name = startEditing task.name
+    }
 
 
-startEditingTaskDescription : Id -> List Task -> List Task
-startEditingTaskDescription id tasks =
-    let
-        startEditingDescription : Task -> Task
-        startEditingDescription task =
-            { task
-                | description = setEditing task.description
-            }
-    in
-    editTaskForId id startEditingDescription tasks
+startEditingDescription : Task -> Task
+startEditingDescription task =
+    { task
+        | description = startEditing task.description
+    }
 
 
 toggleTaskViewState : Id -> List Task -> List Task

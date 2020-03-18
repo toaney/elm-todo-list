@@ -10691,7 +10691,7 @@ var $author$project$Main$deleteTask = F2(
 var $author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
-var $author$project$Main$setEditing = function (editable) {
+var $author$project$Main$startEditing = function (editable) {
 	if (editable.$ === 'Editing') {
 		return editable;
 	} else {
@@ -10700,28 +10700,20 @@ var $author$project$Main$setEditing = function (editable) {
 			{buffer: value, originalValue: value});
 	}
 };
-var $author$project$Main$startEditingTaskDescription = F2(
-	function (id, tasks) {
-		var startEditingDescription = function (task) {
-			return _Utils_update(
-				task,
-				{
-					description: $author$project$Main$setEditing(task.description)
-				});
-		};
-		return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
-	});
-var $author$project$Main$startEditingTaskName = F2(
-	function (id, tasks) {
-		var startEditing = function (task) {
-			return _Utils_update(
-				task,
-				{
-					name: $author$project$Main$setEditing(task.name)
-				});
-		};
-		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
-	});
+var $author$project$Main$startEditingDescription = function (task) {
+	return _Utils_update(
+		task,
+		{
+			description: $author$project$Main$startEditing(task.description)
+		});
+};
+var $author$project$Main$startEditingName = function (task) {
+	return _Utils_update(
+		task,
+		{
+			name: $author$project$Main$startEditing(task.name)
+		});
+};
 var $author$project$Main$stopEditingTaskDescription = F2(
 	function (id, tasks) {
 		var stopEditingDescription = function (task) {
@@ -10852,7 +10844,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$startEditingTaskName, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingName, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskName':
 				var taskId = msg.a;
@@ -10881,7 +10873,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$startEditingTaskDescription, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingDescription, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskDescription':
 				var taskId = msg.a;
