@@ -10714,40 +10714,28 @@ var $author$project$Main$startEditingName = function (task) {
 			name: $author$project$Main$startEditing(task.name)
 		});
 };
-var $author$project$Main$stopEditingTaskDescription = F2(
-	function (id, tasks) {
-		var stopEditingDescription = function (task) {
-			var _v0 = task.description;
-			if (_v0.$ === 'Editing') {
-				var buffer = _v0.a.buffer;
-				return _Utils_update(
-					task,
-					{
-						description: $author$project$Main$NotEditing(buffer)
-					});
-			} else {
-				return task;
-			}
-		};
-		return A3($author$project$Main$editTaskForId, id, stopEditingDescription, tasks);
-	});
-var $author$project$Main$stopEditingTaskName = F2(
-	function (id, tasks) {
-		var stopEditing = function (task) {
-			var _v0 = task.name;
-			if (_v0.$ === 'Editing') {
-				var buffer = _v0.a.buffer;
-				return _Utils_update(
-					task,
-					{
-						name: $author$project$Main$NotEditing(buffer)
-					});
-			} else {
-				return task;
-			}
-		};
-		return A3($author$project$Main$editTaskForId, id, stopEditing, tasks);
-	});
+var $author$project$Main$stopEditing = function (value) {
+	if (value.$ === 'Editing') {
+		var buffer = value.a.buffer;
+		return $author$project$Main$NotEditing(buffer);
+	} else {
+		return value;
+	}
+};
+var $author$project$Main$stopEditingDescription = function (task) {
+	return _Utils_update(
+		task,
+		{
+			description: $author$project$Main$stopEditing(task.description)
+		});
+};
+var $author$project$Main$stopEditingName = function (task) {
+	return _Utils_update(
+		task,
+		{
+			name: $author$project$Main$stopEditing(task.name)
+		});
+};
 var $author$project$Main$Expanded = {$: 'Expanded'};
 var $author$project$Main$toggleTaskViewState = F2(
 	function (id, tasks) {
@@ -10851,7 +10839,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$stopEditingTaskName, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$stopEditingName, model.tasks)
 					});
 			case 'UserClickedCancelEditTaskName':
 				var taskId = msg.a;
@@ -10880,7 +10868,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$stopEditingTaskDescription, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$stopEditingDescription, model.tasks)
 					});
 			case 'UserClickedCancelEditTaskDescription':
 				var taskId = msg.a;

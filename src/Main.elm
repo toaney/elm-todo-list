@@ -9,6 +9,8 @@ module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewS
     <https://elmprogramming.com/type-system.html>
 4.  ✓ TRY (stretch goal) combining `EditableName` and `EditableDescription` into a single `Editable a`,
 5.  ~ TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
+6.  TRY (stretch goal) Notice that our Model has `newTaskName` `newTaskDescription` fields. Combine these into a single
+    `newTask` field of type `Task`.
 
 -}
 
@@ -144,7 +146,7 @@ update msg model =
 
         UserClickedSaveEditTaskName taskId ->
             { model
-                | tasks = stopEditingTaskName taskId model.tasks
+                | tasks = editTaskForId taskId stopEditingName model.tasks
             }
 
         UserClickedCancelEditTaskName taskId ->
@@ -164,7 +166,7 @@ update msg model =
 
         UserClickedSaveEditTaskDescription taskId ->
             { model
-                | tasks = stopEditingTaskDescription taskId model.tasks
+                | tasks = editTaskForId taskId stopEditingDescription model.tasks
             }
 
         UserClickedCancelEditTaskDescription taskId ->
@@ -241,38 +243,28 @@ updateTaskDescriptionBuffer id temporaryDescription tasks =
     editTaskForId id setDescriptionBuffer tasks
 
 
-stopEditingTaskName : Id -> List Task -> List Task
-stopEditingTaskName id tasks =
-    let
-        stopEditing : Task -> Task
-        stopEditing task =
-            case task.name of
-                Editing { buffer } ->
-                    { task
-                        | name = NotEditing buffer
-                    }
+stopEditing : Editable a -> Editable a
+stopEditing value =
+    case value of
+        Editing { buffer } ->
+            NotEditing buffer
 
-                NotEditing _ ->
-                    task
-    in
-    editTaskForId id stopEditing tasks
+        NotEditing _ ->
+            value
 
 
-stopEditingTaskDescription : Id -> List Task -> List Task
-stopEditingTaskDescription id tasks =
-    let
-        stopEditingDescription : Task -> Task
-        stopEditingDescription task =
-            case task.description of
-                Editing { buffer } ->
-                    { task
-                        | description = NotEditing buffer
-                    }
+stopEditingName : Task -> Task
+stopEditingName task =
+    { task
+        | name = stopEditing task.name
+    }
 
-                NotEditing _ ->
-                    task
-    in
-    editTaskForId id stopEditingDescription tasks
+
+stopEditingDescription : Task -> Task
+stopEditingDescription task =
+    { task
+        | description = stopEditing task.description
+    }
 
 
 cancelEditingTaskName : Id -> List Task -> List Task
