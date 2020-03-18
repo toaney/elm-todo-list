@@ -10625,6 +10625,8 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $author$project$Main$TaskEditableDescription = {$: 'TaskEditableDescription'};
+var $author$project$Main$TaskEditableName = {$: 'TaskEditableName'};
 var $author$project$Main$editTaskForId = F3(
 	function (id, editFunction, tasks) {
 		var editTaskIfId = function (task) {
@@ -10721,13 +10723,10 @@ var $author$project$Main$startEditingTask = F3(
 					});
 			}
 		};
-		switch (taskfield) {
-			case 'name':
-				return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
-			case 'description':
-				return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
-			default:
-				return tasks;
+		if (taskfield.$ === 'TaskEditableName') {
+			return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
+		} else {
+			return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
 		}
 	});
 var $author$project$Main$stopEditingTaskDescription = F2(
@@ -10860,7 +10859,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A3($author$project$Main$startEditingTask, 'name', taskId, model.tasks)
+						tasks: A3($author$project$Main$startEditingTask, $author$project$Main$TaskEditableName, taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskName':
 				var taskId = msg.a;
@@ -10889,7 +10888,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A3($author$project$Main$startEditingTask, 'description', taskId, model.tasks)
+						tasks: A3($author$project$Main$startEditingTask, $author$project$Main$TaskEditableDescription, taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskDescription':
 				var taskId = msg.a;

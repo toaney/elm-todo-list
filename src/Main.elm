@@ -56,6 +56,11 @@ type Editable a
 --     | EditingDescription { originalDescription : TaskDescription, descriptionBuffer : TaskDescription }
 
 
+type TaskEditableField
+    = TaskEditableName
+    | TaskEditableDescription
+
+
 type TaskViewState
     = Expanded
     | Collapsed
@@ -134,7 +139,7 @@ update msg model =
 
         UserClickedEditTaskName taskId ->
             { model
-                | tasks = startEditingTask "name" taskId model.tasks
+                | tasks = startEditingTask TaskEditableName taskId model.tasks
             }
 
         UserClickedSaveEditTaskName taskId ->
@@ -154,7 +159,7 @@ update msg model =
 
         UserClickedEditTaskDescription taskId ->
             { model
-                | tasks = startEditingTask "description" taskId model.tasks
+                | tasks = startEditingTask TaskEditableDescription taskId model.tasks
             }
 
         UserClickedSaveEditTaskDescription taskId ->
@@ -304,7 +309,7 @@ cancelEditingTaskDescription id tasks =
     editTaskForId id cancelEditing tasks
 
 
-startEditingTask : String -> Id -> List Task -> List Task
+startEditingTask : TaskEditableField -> Id -> List Task -> List Task
 startEditingTask taskfield id tasks =
     let
         startEditing : Task -> Task
@@ -330,14 +335,11 @@ startEditingTask taskfield id tasks =
                     }
     in
     case taskfield of
-        "name" ->
+        TaskEditableName ->
             editTaskForId id startEditing tasks
 
-        "description" ->
+        TaskEditableDescription ->
             editTaskForId id startEditingDescription tasks
-
-        _ ->
-            tasks
 
 
 
