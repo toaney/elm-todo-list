@@ -10693,37 +10693,41 @@ var $author$project$Main$Editing = function (a) {
 };
 var $author$project$Main$startEditingTaskDescription = F2(
 	function (id, tasks) {
-		var startEditingDescription = function (task) {
-			var _v0 = task.description;
-			if (_v0.$ === 'Editing') {
-				return task;
+		var setEditing = function (editable) {
+			if (editable.$ === 'Editing') {
+				return editable;
 			} else {
-				var taskDescription = _v0.a;
-				return _Utils_update(
-					task,
-					{
-						description: $author$project$Main$Editing(
-							{buffer: taskDescription, originalValue: taskDescription})
-					});
+				var variable = editable.a;
+				return $author$project$Main$Editing(
+					{buffer: variable, originalValue: variable});
 			}
+		};
+		var startEditingDescription = function (task) {
+			return _Utils_update(
+				task,
+				{
+					description: setEditing(task.description)
+				});
 		};
 		return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
 	});
 var $author$project$Main$startEditingTaskName = F2(
 	function (id, tasks) {
-		var startEditing = function (task) {
-			var _v0 = task.name;
-			if (_v0.$ === 'Editing') {
-				return task;
+		var setEditing = function (editable) {
+			if (editable.$ === 'Editing') {
+				return editable;
 			} else {
-				var taskName = _v0.a;
-				return _Utils_update(
-					task,
-					{
-						name: $author$project$Main$Editing(
-							{buffer: taskName, originalValue: taskName})
-					});
+				var taskName = editable.a;
+				return $author$project$Main$Editing(
+					{buffer: taskName, originalValue: taskName});
 			}
+		};
+		var startEditing = function (task) {
+			return _Utils_update(
+				task,
+				{
+					name: setEditing(task.name)
+				});
 		};
 		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
 	});
