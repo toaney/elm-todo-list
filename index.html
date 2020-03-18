@@ -10691,42 +10691,33 @@ var $author$project$Main$deleteTask = F2(
 var $author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
+var $author$project$Main$setEditing = function (editable) {
+	if (editable.$ === 'Editing') {
+		return editable;
+	} else {
+		var value = editable.a;
+		return $author$project$Main$Editing(
+			{buffer: value, originalValue: value});
+	}
+};
 var $author$project$Main$startEditingTaskDescription = F2(
 	function (id, tasks) {
-		var setEditing = function (editable) {
-			if (editable.$ === 'Editing') {
-				return editable;
-			} else {
-				var variable = editable.a;
-				return $author$project$Main$Editing(
-					{buffer: variable, originalValue: variable});
-			}
-		};
 		var startEditingDescription = function (task) {
 			return _Utils_update(
 				task,
 				{
-					description: setEditing(task.description)
+					description: $author$project$Main$setEditing(task.description)
 				});
 		};
 		return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
 	});
 var $author$project$Main$startEditingTaskName = F2(
 	function (id, tasks) {
-		var setEditing = function (editable) {
-			if (editable.$ === 'Editing') {
-				return editable;
-			} else {
-				var taskName = editable.a;
-				return $author$project$Main$Editing(
-					{buffer: taskName, originalValue: taskName});
-			}
-		};
 		var startEditing = function (task) {
 			return _Utils_update(
 				task,
 				{
-					name: setEditing(task.name)
+					name: $author$project$Main$setEditing(task.name)
 				});
 		};
 		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);

@@ -342,33 +342,24 @@ cancelEditingTaskDescription id tasks =
 --             editTaskForId id startEditingDescription tasks
 
 
+setEditing : Editable a -> Editable a
+setEditing editable =
+    case editable of
+        Editing _ ->
+            editable
+
+        NotEditing value ->
+            Editing { originalValue = value, buffer = value }
+
+
 startEditingTaskName : Id -> List Task -> List Task
 startEditingTaskName id tasks =
     let
-        setEditing : Editable TaskName -> Editable TaskName
-        setEditing editable =
-            case editable of
-                Editing _ ->
-                    editable
-
-                NotEditing taskName ->
-                    Editing { originalValue = taskName, buffer = taskName }
-
         startEditing : Task -> Task
         startEditing task =
             { task
                 | name = setEditing task.name
             }
-
-        -- case task.name of
-        --     Editing _ ->
-        --         { task
-        --             | name = task.name
-        --         }
-        --     NotEditing taskName ->
-        --         { task
-        --             | name = Editing { originalValue = taskName, buffer = taskName }
-        --         }
     in
     editTaskForId id startEditing tasks
 
@@ -376,15 +367,6 @@ startEditingTaskName id tasks =
 startEditingTaskDescription : Id -> List Task -> List Task
 startEditingTaskDescription id tasks =
     let
-        setEditing : Editable TaskDescription -> Editable TaskDescription
-        setEditing editable =
-            case editable of
-                Editing _ ->
-                    editable
-
-                NotEditing variable ->
-                    Editing { originalValue = variable, buffer = variable }
-
         startEditingDescription : Task -> Task
         startEditingDescription task =
             { task
