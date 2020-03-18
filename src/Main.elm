@@ -139,7 +139,7 @@ update msg model =
 
         UserClickedEditTaskName taskId ->
             { model
-                | tasks = startEditingTask TaskEditableName taskId model.tasks
+                | tasks = startEditingTaskName taskId model.tasks
             }
 
         UserClickedSaveEditTaskName taskId ->
@@ -159,7 +159,7 @@ update msg model =
 
         UserClickedEditTaskDescription taskId ->
             { model
-                | tasks = startEditingTask TaskEditableDescription taskId model.tasks
+                | tasks = startEditingTaskDescription taskId model.tasks
             }
 
         UserClickedSaveEditTaskDescription taskId ->
@@ -309,8 +309,41 @@ cancelEditingTaskDescription id tasks =
     editTaskForId id cancelEditing tasks
 
 
-startEditingTask : TaskEditableField -> Id -> List Task -> List Task
-startEditingTask taskfield id tasks =
+
+-- startEditingTask : TaskEditableField -> Id -> List Task -> List Task
+-- startEditingTask taskfield id tasks =
+--     let
+--         startEditing : Task -> Task
+--         startEditing task =
+--             case task.name of
+--                 Editing _ ->
+--                     task
+--                 NotEditing taskName ->
+--                     { task
+--                         | name = Editing { originalValue = taskName, buffer = taskName }
+--                     }
+--         startEditingDescription : Task -> Task
+--         startEditingDescription task =
+--             { task
+--             | description = startEditing task.description
+--             }
+--             case task.description of
+--                 Editing _ ->
+--                     task
+--                 NotEditing taskDescription ->
+--                     { task
+--                         | description = Editing { originalValue = taskDescription, buffer = taskDescription }
+--                     }
+--     in
+--     case taskfield of
+--         TaskEditableName ->
+--             editTaskForId id startEditing tasks
+--         TaskEditableDescription ->
+--             editTaskForId id startEditingDescription tasks
+
+
+startEditingTaskName : Id -> List Task -> List Task
+startEditingTaskName id tasks =
     let
         startEditing : Task -> Task
         startEditing task =
@@ -322,7 +355,13 @@ startEditingTask taskfield id tasks =
                     { task
                         | name = Editing { originalValue = taskName, buffer = taskName }
                     }
+    in
+    editTaskForId id startEditing tasks
 
+
+startEditingTaskDescription : Id -> List Task -> List Task
+startEditingTaskDescription id tasks =
+    let
         startEditingDescription : Task -> Task
         startEditingDescription task =
             case task.description of
@@ -334,43 +373,7 @@ startEditingTask taskfield id tasks =
                         | description = Editing { originalValue = taskDescription, buffer = taskDescription }
                     }
     in
-    case taskfield of
-        TaskEditableName ->
-            editTaskForId id startEditing tasks
-
-        TaskEditableDescription ->
-            editTaskForId id startEditingDescription tasks
-
-
-
--- startEditingTaskName : Id -> List Task -> List Task
--- startEditingTaskName id tasks =
---     let
---         startEditing : Task -> Task
---         startEditing task =
---             case task.name of
---                 Editing _ ->
---                     task
---                 NotEditing taskName ->
---                     { task
---                         | name = Editing { originalValue = taskName, buffer = taskName }
---                     }
---     in
---     editTaskForId id startEditing tasks
--- startEditingTaskDescription : Id -> List Task -> List Task
--- startEditingTaskDescription id tasks =
---     let
---         startEditingDescription : Task -> Task
---         startEditingDescription task =
---             case task.description of
---                 Editing _ ->
---                     task
---                 NotEditing taskDescription ->
---                     { task
---                         | description = Editing { originalValue = taskDescription, buffer = taskDescription }
---                     }
---     in
---     editTaskForId id startEditingDescription tasks
+    editTaskForId id startEditingDescription tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task

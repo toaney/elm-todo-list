@@ -10625,8 +10625,6 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $author$project$Main$TaskEditableDescription = {$: 'TaskEditableDescription'};
-var $author$project$Main$TaskEditableName = {$: 'TaskEditableName'};
 var $author$project$Main$editTaskForId = F3(
 	function (id, editFunction, tasks) {
 		var editTaskIfId = function (task) {
@@ -10693,14 +10691,14 @@ var $author$project$Main$deleteTask = F2(
 var $author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
-var $author$project$Main$startEditingTask = F3(
-	function (taskfield, id, tasks) {
+var $author$project$Main$startEditingTaskDescription = F2(
+	function (id, tasks) {
 		var startEditingDescription = function (task) {
-			var _v2 = task.description;
-			if (_v2.$ === 'Editing') {
+			var _v0 = task.description;
+			if (_v0.$ === 'Editing') {
 				return task;
 			} else {
-				var taskDescription = _v2.a;
+				var taskDescription = _v0.a;
 				return _Utils_update(
 					task,
 					{
@@ -10709,12 +10707,16 @@ var $author$project$Main$startEditingTask = F3(
 					});
 			}
 		};
+		return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
+	});
+var $author$project$Main$startEditingTaskName = F2(
+	function (id, tasks) {
 		var startEditing = function (task) {
-			var _v1 = task.name;
-			if (_v1.$ === 'Editing') {
+			var _v0 = task.name;
+			if (_v0.$ === 'Editing') {
 				return task;
 			} else {
-				var taskName = _v1.a;
+				var taskName = _v0.a;
 				return _Utils_update(
 					task,
 					{
@@ -10723,11 +10725,7 @@ var $author$project$Main$startEditingTask = F3(
 					});
 			}
 		};
-		if (taskfield.$ === 'TaskEditableName') {
-			return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
-		} else {
-			return A3($author$project$Main$editTaskForId, id, startEditingDescription, tasks);
-		}
+		return A3($author$project$Main$editTaskForId, id, startEditing, tasks);
 	});
 var $author$project$Main$stopEditingTaskDescription = F2(
 	function (id, tasks) {
@@ -10859,7 +10857,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A3($author$project$Main$startEditingTask, $author$project$Main$TaskEditableName, taskId, model.tasks)
+						tasks: A2($author$project$Main$startEditingTaskName, taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskName':
 				var taskId = msg.a;
@@ -10888,7 +10886,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A3($author$project$Main$startEditingTask, $author$project$Main$TaskEditableDescription, taskId, model.tasks)
+						tasks: A2($author$project$Main$startEditingTaskDescription, taskId, model.tasks)
 					});
 			case 'UserClickedSaveEditTaskDescription':
 				var taskId = msg.a;
