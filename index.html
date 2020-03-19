@@ -10625,49 +10625,29 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
-var $author$project$Main$editTaskForId = F3(
-	function (id, editFunction, tasks) {
-		var editTaskIfId = function (task) {
-			return _Utils_eq(id, task.id) ? editFunction(task) : task;
-		};
-		return A2($elm$core$List$map, editTaskIfId, tasks);
-	});
-var $author$project$Main$cancelEditingTaskDescription = F2(
-	function (id, tasks) {
-		var cancelEditing = function (task) {
-			var _v0 = task.description;
-			if (_v0.$ === 'Editing') {
-				var originalValue = _v0.a.originalValue;
-				var buffer = _v0.a.buffer;
-				return _Utils_update(
-					task,
-					{
-						description: $author$project$Main$NotEditing(originalValue)
-					});
-			} else {
-				return task;
-			}
-		};
-		return A3($author$project$Main$editTaskForId, id, cancelEditing, tasks);
-	});
-var $author$project$Main$cancelEditingTaskName = F2(
-	function (id, tasks) {
-		var cancelEditing = function (task) {
-			var _v0 = task.name;
-			if (_v0.$ === 'Editing') {
-				var originalValue = _v0.a.originalValue;
-				var buffer = _v0.a.buffer;
-				return _Utils_update(
-					task,
-					{
-						name: $author$project$Main$NotEditing(originalValue)
-					});
-			} else {
-				return task;
-			}
-		};
-		return A3($author$project$Main$editTaskForId, id, cancelEditing, tasks);
-	});
+var $author$project$Main$cancelEditing = function (editable) {
+	if (editable.$ === 'Editing') {
+		var originalValue = editable.a.originalValue;
+		var buffer = editable.a.buffer;
+		return $author$project$Main$NotEditing(originalValue);
+	} else {
+		return editable;
+	}
+};
+var $author$project$Main$cancelEditingDescription = function (task) {
+	return _Utils_update(
+		task,
+		{
+			description: $author$project$Main$cancelEditing(task.description)
+		});
+};
+var $author$project$Main$cancelEditingName = function (task) {
+	return _Utils_update(
+		task,
+		{
+			name: $author$project$Main$cancelEditing(task.name)
+		});
+};
 var $elm$core$List$filter = F2(
 	function (isGood, list) {
 		return A3(
@@ -10687,6 +10667,13 @@ var $author$project$Main$deleteTask = F2(
 				return !_Utils_eq(task.id, id);
 			},
 			tasks);
+	});
+var $author$project$Main$editTaskForId = F3(
+	function (id, editFunction, tasks) {
+		var editTaskIfId = function (task) {
+			return _Utils_eq(id, task.id) ? editFunction(task) : task;
+		};
+		return A2($elm$core$List$map, editTaskIfId, tasks);
 	});
 var $author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
@@ -10754,7 +10741,16 @@ var $author$project$Main$toggleTaskViewState = F2(
 		return A3($author$project$Main$editTaskForId, id, toggleViewState, tasks);
 	});
 var $author$project$Main$updateTaskDescriptionBuffer = F3(
-	function (id, temporaryDescription, tasks) {
+	function (id, tempValue, tasks) {
+		var updateBuffer = function (value) {
+			if (value.$ === 'Editing') {
+				var originalValue = value.a.originalValue;
+				return $author$project$Main$Editing(
+					{buffer: tempValue, originalValue: originalValue});
+			} else {
+				return value;
+			}
+		};
 		var setDescriptionBuffer = function (task) {
 			var _v0 = task.description;
 			if (_v0.$ === 'Editing') {
@@ -10763,31 +10759,35 @@ var $author$project$Main$updateTaskDescriptionBuffer = F3(
 					task,
 					{
 						description: $author$project$Main$Editing(
-							{buffer: temporaryDescription, originalValue: originalValue})
+							{buffer: tempValue, originalValue: originalValue})
 					});
 			} else {
-				return task;
+				return _Utils_update(
+					task,
+					{description: task.description});
 			}
 		};
 		return A3($author$project$Main$editTaskForId, id, setDescriptionBuffer, tasks);
 	});
 var $author$project$Main$updateTaskNameBuffer = F3(
-	function (id, temporaryName, tasks) {
-		var setBuffer = function (task) {
-			var _v0 = task.name;
-			if (_v0.$ === 'Editing') {
-				var originalValue = _v0.a.originalValue;
-				return _Utils_update(
-					task,
-					{
-						name: $author$project$Main$Editing(
-							{buffer: temporaryName, originalValue: originalValue})
-					});
+	function (id, tempValue, tasks) {
+		var updateBuffer = function (value) {
+			if (value.$ === 'Editing') {
+				var originalValue = value.a.originalValue;
+				return $author$project$Main$Editing(
+					{buffer: tempValue, originalValue: originalValue});
 			} else {
-				return task;
+				return value;
 			}
 		};
-		return A3($author$project$Main$editTaskForId, id, setBuffer, tasks);
+		var setNameBuffer = function (task) {
+			return _Utils_update(
+				task,
+				{
+					name: updateBuffer(task.name)
+				});
+		};
+		return A3($author$project$Main$editTaskForId, id, setNameBuffer, tasks);
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -10846,7 +10846,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$cancelEditingTaskName, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingName, model.tasks)
 					});
 			case 'UserEditedTaskName':
 				var taskId = msg.a;
@@ -10875,7 +10875,7 @@ var $author$project$Main$update = F2(
 				return _Utils_update(
 					model,
 					{
-						tasks: A2($author$project$Main$cancelEditingTaskDescription, taskId, model.tasks)
+						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingDescription, model.tasks)
 					});
 			default:
 				var taskId = msg.a;

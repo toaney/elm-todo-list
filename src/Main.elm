@@ -151,7 +151,7 @@ update msg model =
 
         UserClickedCancelEditTaskName taskId ->
             { model
-                | tasks = cancelEditingTaskName taskId model.tasks
+                | tasks = editTaskForId taskId cancelEditingName model.tasks
             }
 
         UserEditedTaskName taskId editedTaskName ->
@@ -171,7 +171,7 @@ update msg model =
 
         UserClickedCancelEditTaskDescription taskId ->
             { model
-                | tasks = cancelEditingTaskDescription taskId model.tasks
+                | tasks = editTaskForId taskId cancelEditingDescription model.tasks
             }
 
         UserEditedTaskDescription taskId editedTaskDescription ->
@@ -212,33 +212,50 @@ editTaskForId id editFunction tasks =
 
 
 updateTaskNameBuffer : Id -> TaskName -> List Task -> List Task
-updateTaskNameBuffer id temporaryName tasks =
+updateTaskNameBuffer id tempValue tasks =
     let
-        setBuffer task =
-            case task.name of
+        updateBuffer : Editable TaskName -> Editable TaskName
+        updateBuffer value =
+            case value of
                 Editing { originalValue } ->
-                    { task
-                        | name = Editing { originalValue = originalValue, buffer = temporaryName }
-                    }
+                    Editing { originalValue = originalValue, buffer = tempValue }
 
                 NotEditing _ ->
-                    task
+                    value
+
+        setNameBuffer : Task -> Task
+        setNameBuffer task =
+            { task
+                | name = updateBuffer task.name
+            }
     in
-    editTaskForId id setBuffer tasks
+    editTaskForId id setNameBuffer tasks
 
 
 updateTaskDescriptionBuffer : Id -> TaskDescription -> List Task -> List Task
-updateTaskDescriptionBuffer id temporaryDescription tasks =
+updateTaskDescriptionBuffer id tempValue tasks =
     let
+        updateBuffer : Editable TaskDescription -> Editable TaskDescription
+        updateBuffer value =
+            case value of
+                Editing { originalValue } ->
+                    Editing { originalValue = originalValue, buffer = tempValue }
+
+                NotEditing _ ->
+                    value
+
+        setDescriptionBuffer : Task -> Task
         setDescriptionBuffer task =
             case task.description of
                 Editing { originalValue } ->
                     { task
-                        | description = Editing { originalValue = originalValue, buffer = temporaryDescription }
+                        | description = Editing { originalValue = originalValue, buffer = tempValue }
                     }
 
                 NotEditing _ ->
-                    task
+                    { task
+                        | description = task.description
+                    }
     in
     editTaskForId id setDescriptionBuffer tasks
 
@@ -267,38 +284,70 @@ stopEditingDescription task =
     }
 
 
-cancelEditingTaskName : Id -> List Task -> List Task
-cancelEditingTaskName id tasks =
-    let
-        cancelEditing : Task -> Task
-        cancelEditing task =
-            case task.name of
-                Editing { originalValue, buffer } ->
-                    { task
-                        | name = NotEditing originalValue
-                    }
+cancelEditing : Editable a -> Editable a
+cancelEditing editable =
+    case editable of
+        Editing { originalValue, buffer } ->
+            NotEditing originalValue
 
-                NotEditing _ ->
-                    task
-    in
-    editTaskForId id cancelEditing tasks
+        NotEditing _ ->
+            editable
 
 
-cancelEditingTaskDescription : Id -> List Task -> List Task
-cancelEditingTaskDescription id tasks =
-    let
-        cancelEditing : Task -> Task
-        cancelEditing task =
-            case task.description of
-                Editing { originalValue, buffer } ->
-                    { task
-                        | description = NotEditing originalValue
-                    }
+cancelEditingName : Task -> Task
+cancelEditingName task =
+    { task
+        | name = cancelEditing task.name
+    }
 
-                NotEditing _ ->
-                    task
-    in
-    editTaskForId id cancelEditing tasks
+
+cancelEditingDescription : Task -> Task
+cancelEditingDescription task =
+    { task
+        | description = cancelEditing task.description
+    }
+
+
+
+-- cancelEditingTaskName : Id -> List Task -> List Task
+-- cancelEditingTaskName id tasks =
+--     let
+--         cancelEditing : Editable a -> Editable a
+--         cancelEditing value =
+--             case value of
+--                 Editing { originalValue, buffer } ->
+--                     NotEditing originalValue
+--                 NotEditing _ ->
+--                     value
+--         cancelEditingName : Task -> Task
+--         cancelEditingName task =
+--             case task.name of
+--                 Editing { originalValue, buffer } ->
+--                     { task
+--                         | name = NotEditing originalValue
+--                     }
+--                 NotEditing _ ->
+--                     { task
+--                         | name = task.name
+--                     }
+--     in
+--     editTaskForId id cancelEditingName tasks
+-- cancelEditingTaskDescription : Id -> List Task -> List Task
+-- cancelEditingTaskDescription id tasks =
+--     let
+--         cancelEditingDescription : Task -> Task
+--         cancelEditingDescription task =
+--             case task.description of
+--                 Editing { originalValue, buffer } ->
+--                     { task
+--                         | description = NotEditing originalValue
+--                     }
+--                 NotEditing _ ->
+--                     { task
+--                         | description = task.description
+--                     }
+--     in
+--     editTaskForId id cancelEditingDescription tasks
 
 
 startEditing : Editable a -> Editable a
