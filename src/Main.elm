@@ -11,6 +11,9 @@ module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewS
 5.  ~ TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
 6.  TRY (stretch goal) Notice that our Model has `newTaskName` `newTaskDescription` fields. Combine these into a single
     `newTask` field of type `Task`.
+7.  TRY (stretch goal) One thing to look at adding is the completion status,
+    as well as a button to view complete/incomplete/all tasks.
+    That should use most all that we’ve done so far as practice.
 
 -}
 
@@ -22,6 +25,23 @@ import Html.Events as HE
 
 
 -- MODEL
+
+
+type alias Model =
+    { newTaskName : TaskName
+    , newTaskDescription : TaskDescription
+    , tasks : List Task
+    , nextTaskId : Id
+    }
+
+
+type alias Task =
+    { name : Editable TaskName
+    , description : Editable TaskDescription
+    , id : Id
+    , viewState : TaskViewState
+    , status : TaskStatus
+    }
 
 
 type Id
@@ -36,17 +56,19 @@ type TaskDescription
     = TaskDescription String
 
 
-type alias Task =
-    { name : Editable TaskName
-    , description : Editable TaskDescription
-    , id : Id
-    , viewState : TaskViewState
-    }
+type TaskStatus
+    = Complete
+    | Incomplete
 
 
 type Editable a
     = NotEditing a
     | Editing { originalValue : a, buffer : a }
+
+
+type TaskViewState
+    = Expanded
+    | Collapsed
 
 
 
@@ -56,24 +78,9 @@ type Editable a
 -- type EditableDescription
 --     = NotEditingDescription TaskDescription
 --     | EditingDescription { originalDescription : TaskDescription, descriptionBuffer : TaskDescription }
-
-
-type TaskEditableField
-    = TaskEditableName
-    | TaskEditableDescription
-
-
-type TaskViewState
-    = Expanded
-    | Collapsed
-
-
-type alias Model =
-    { newTaskName : TaskName
-    , newTaskDescription : TaskDescription
-    , tasks : List Task
-    , nextTaskId : Id
-    }
+-- type TaskEditableField
+--     = TaskEditableName
+--     | TaskEditableDescription
 
 
 init : Model
@@ -86,6 +93,8 @@ init =
     }
         |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum")
         |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice")
+        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum")
+        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice")
 
 
 
@@ -106,6 +115,7 @@ type Msg
     | UserClickedSaveEditTaskDescription Id
     | UserClickedCancelEditTaskDescription Id
     | UserEditedTaskDescription Id TaskDescription
+    | UserClickedUpdateStatus Id
 
 
 update : Msg -> Model -> Model
@@ -156,7 +166,7 @@ update msg model =
 
         UserEditedTaskName taskId editedTaskName ->
             { model
-                | tasks = updateTaskNameBuffer taskId editedTaskName model.tasks
+                | tasks = editTaskForId taskId (setNameBuffer editedTaskName) model.tasks
             }
 
         UserClickedEditTaskDescription taskId ->
@@ -176,8 +186,41 @@ update msg model =
 
         UserEditedTaskDescription taskId editedTaskDescription ->
             { model
-                | tasks = updateTaskDescriptionBuffer taskId editedTaskDescription model.tasks
+                | tasks = editTaskForId taskId (setDescriptionBuffer editedTaskDescription) model.tasks
             }
+
+        UserClickedUpdateStatus taskId ->
+            { model
+                | tasks = editTaskForId taskId toggleStatus model.tasks
+            }
+
+
+addTask : TaskName -> TaskDescription -> Model -> Model
+addTask name description model =
+    { model
+        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete } :: model.tasks
+        , nextTaskId = incrementId model.nextTaskId
+    }
+
+
+incrementId : Id -> Id
+incrementId id =
+    mapId ((+) 1) id
+
+
+mapId : (Int -> Int) -> Id -> Id
+mapId f (Id id) =
+    Id (f id)
+
+
+nameValue : TaskName -> String
+nameValue (TaskName name) =
+    name
+
+
+descriptionValue : TaskDescription -> String
+descriptionValue (TaskDescription description) =
+    description
 
 
 
@@ -189,12 +232,6 @@ update msg model =
 deleteTask : Id -> List Task -> List Task
 deleteTask id tasks =
     List.filter (\task -> task.id /= id) tasks
-
-
-
--- deleteTask : Id -> List Task -> List Task
--- deleteTask id =
---     List.filter (\task -> task.id /= id)
 
 
 editTaskForId : Id -> (Task -> Task) -> List Task -> List Task
@@ -211,53 +248,58 @@ editTaskForId id editFunction tasks =
     List.map editTaskIfId tasks
 
 
-updateTaskNameBuffer : Id -> TaskName -> List Task -> List Task
-updateTaskNameBuffer id tempValue tasks =
-    let
-        updateBuffer : Editable TaskName -> Editable TaskName
-        updateBuffer value =
-            case value of
-                Editing { originalValue } ->
-                    Editing { originalValue = originalValue, buffer = tempValue }
+startEditing : Editable a -> Editable a
+startEditing editable =
+    case editable of
+        Editing _ ->
+            editable
 
-                NotEditing _ ->
-                    value
-
-        setNameBuffer : Task -> Task
-        setNameBuffer task =
-            { task
-                | name = updateBuffer task.name
-            }
-    in
-    editTaskForId id setNameBuffer tasks
+        NotEditing value ->
+            Editing { originalValue = value, buffer = value }
 
 
-updateTaskDescriptionBuffer : Id -> TaskDescription -> List Task -> List Task
-updateTaskDescriptionBuffer id tempValue tasks =
-    let
-        updateBuffer : Editable TaskDescription -> Editable TaskDescription
-        updateBuffer value =
-            case value of
-                Editing { originalValue } ->
-                    Editing { originalValue = originalValue, buffer = tempValue }
+startEditingName : Task -> Task
+startEditingName task =
+    { task
+        | name = startEditing task.name
+    }
 
-                NotEditing _ ->
-                    value
 
-        setDescriptionBuffer : Task -> Task
-        setDescriptionBuffer task =
-            case task.description of
-                Editing { originalValue } ->
-                    { task
-                        | description = Editing { originalValue = originalValue, buffer = tempValue }
-                    }
+startEditingDescription : Task -> Task
+startEditingDescription task =
+    { task
+        | description = startEditing task.description
+    }
 
-                NotEditing _ ->
-                    { task
-                        | description = task.description
-                    }
-    in
-    editTaskForId id setDescriptionBuffer tasks
+
+
+-- deleteTask : Id -> List Task -> List Task
+-- deleteTask id =
+--     List.filter (\task -> task.id /= id)
+
+
+updateBuffer : Editable a -> a -> Editable a
+updateBuffer value temp =
+    case value of
+        Editing { originalValue } ->
+            Editing { originalValue = originalValue, buffer = temp }
+
+        NotEditing _ ->
+            value
+
+
+setNameBuffer : TaskName -> Task -> Task
+setNameBuffer newBuffer task =
+    { task
+        | name = updateBuffer task.name newBuffer
+    }
+
+
+setDescriptionBuffer : TaskDescription -> Task -> Task
+setDescriptionBuffer newDescription task =
+    { task
+        | description = updateBuffer task.description newDescription
+    }
 
 
 stopEditing : Editable a -> Editable a
@@ -350,28 +392,25 @@ cancelEditingDescription task =
 --     editTaskForId id cancelEditingDescription tasks
 
 
-startEditing : Editable a -> Editable a
-startEditing editable =
-    case editable of
-        Editing _ ->
-            editable
+toggleStatus task =
+    case task.status of
+        Complete ->
+            { task
+                | status = Incomplete
+            }
 
-        NotEditing value ->
-            Editing { originalValue = value, buffer = value }
-
-
-startEditingName : Task -> Task
-startEditingName task =
-    { task
-        | name = startEditing task.name
-    }
+        Incomplete ->
+            { task
+                | status = Complete
+            }
 
 
-startEditingDescription : Task -> Task
-startEditingDescription task =
-    { task
-        | description = startEditing task.description
-    }
+
+-- toggleTaskStatus : Id -> List Task -> List Task
+-- toggleTaskStatus id tasks =
+--     let
+--     in
+--     editTaskForId id toggleStatus tasks
 
 
 toggleTaskViewState : Id -> List Task -> List Task
@@ -392,44 +431,35 @@ toggleTaskViewState id tasks =
     editTaskForId id toggleViewState tasks
 
 
-addTask : TaskName -> TaskDescription -> Model -> Model
-addTask name description model =
-    { model
-        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed } :: model.tasks
-        , nextTaskId = incrementId model.nextTaskId
-    }
-
-
-incrementId : Id -> Id
-incrementId id =
-    mapId ((+) 1) id
-
-
-mapId : (Int -> Int) -> Id -> Id
-mapId f (Id id) =
-    Id (f id)
-
-
-nameValue : TaskName -> String
-nameValue (TaskName name) =
-    name
-
-
-descriptionValue : TaskDescription -> String
-descriptionValue (TaskDescription description) =
-    description
-
-
 
 -- VIEW
 
 
+css path =
+    Html.node "link" [ HA.rel "stylesheet", HA.href "/style.css" ] []
+
+
 view : Model -> Html.Html Msg
 view model =
-    Html.div []
-        (newTaskView model
-            :: List.map taskView model.tasks
-        )
+    -- Html.div []
+    --     (newTaskView model
+    --         :: List.map taskView model.tasks
+    --     )
+    Html.div [ HA.class "content-container" ]
+        [ Html.text "Elm To-do List"
+        , newTaskView model
+        , incompleteTasksView model
+        , completeTasksView model
+
+        -- , Html.div []
+        --     [ Html.button [ ] [ Html.text "add" ]
+        --     , Html.button [ ] [ Html.text "add" ]
+        --     , Html.button [ ] [ Html.text "add" ]
+        --     , Html.button [ ] [ Html.text "add" ]
+        --     , Html.button [ ] [ Html.text "add" ]
+        --     , Html.button [ ] [ Html.text "add" ]
+        --     ]
+        ]
 
 
 newTaskView : Model -> Html.Html Msg
@@ -439,15 +469,43 @@ newTaskView model =
             [ HA.placeholder "Name"
             , HA.value <| nameValue model.newTaskName
             , HE.onInput <| TaskName >> UserEditedNewTaskName
+            , HA.class "newTaskNameInput"
             ]
             []
         , Html.input
             [ HA.placeholder "Description"
             , HA.value <| descriptionValue model.newTaskDescription
             , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
+            , HA.class "newTaskDescriptionInput"
             ]
             []
-        , Html.button [ HE.onClick UserClickedAddTask ] [ Html.text "add" ]
+        , Html.button
+            [ HE.onClick UserClickedAddTask
+            , HA.class "newTaskAddButton"
+            ]
+            [ Html.text "add" ]
+        ]
+
+
+
+-- completeTasksView : Model -> Html.Html Msg
+
+
+completeTasksView model =
+    Html.div []
+        [ Html.text "Completed Tasks"
+        , Html.div []
+            -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
+            (List.map taskView <| List.filter (\task -> task.status == Complete) model.tasks)
+        ]
+
+
+incompleteTasksView model =
+    Html.div []
+        [ Html.text "Pending Tasks"
+        , Html.div []
+            -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
+            (List.map taskView <| List.filter (\task -> task.status /= Complete) model.tasks)
         ]
 
 
@@ -455,13 +513,17 @@ taskView : Task -> Html.Html Msg
 taskView task =
     let
         deleteButtonView =
-            Html.button [ HE.onClick (UserClickedDeleteTask task.id) ] [ Html.text "delete" ]
+            Html.button [ HE.onClick (UserClickedDeleteTask task.id), HA.class "taskDeleteButton" ] [ Html.text "delete" ]
+
+        updateStatusButtonView =
+            Html.button [ HE.onClick (UserClickedUpdateStatus task.id), HA.class "updateStatusButton" ] [ Html.text "toggle complete" ]
     in
     case task.viewState of
         Collapsed ->
             Html.div []
                 [ taskNameView task
                 , deleteButtonView
+                , updateStatusButtonView
                 ]
 
         Expanded ->
@@ -469,6 +531,7 @@ taskView task =
                 [ taskNameView task
                 , taskDescriptionView task
                 , deleteButtonView
+                , updateStatusButtonView
                 ]
 
 

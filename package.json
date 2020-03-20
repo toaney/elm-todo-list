@@ -12,7 +12,7 @@
   },
   "scripts": {
     "test": "elm-test",
-    "elm-live": "elm-live src/Main.elm -- --debug",
+    "elm-live": "elm-live src/Main.elm --open -- --output=elm.js --debug",
     "elm-format": "elm-format src/Main.elm tests/MainTests.elm --yes"
   },
   "author": "",
