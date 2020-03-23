@@ -10917,7 +10917,10 @@ var $author$project$Main$taskDescriptionView = function (task) {
 		var buffer = _v0.a.buffer;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-description')
+				]),
 			_List_fromArray(
 				[
 					A2(
@@ -10962,7 +10965,10 @@ var $author$project$Main$taskDescriptionView = function (task) {
 		var taskDescription = _v0.a;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-description')
+				]),
 			_List_fromArray(
 				[
 					$elm$html$Html$text(
@@ -11007,7 +11013,10 @@ var $author$project$Main$taskNameView = function (task) {
 		var buffer = _v0.a.buffer;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-name')
+				]),
 			_List_fromArray(
 				[
 					A2(
@@ -11052,7 +11061,10 @@ var $author$project$Main$taskNameView = function (task) {
 		var taskName = _v0.a;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-name')
+				]),
 			_List_fromArray(
 				[
 					A2(
@@ -11110,7 +11122,10 @@ var $author$project$Main$taskView = function (task) {
 	if (_v0.$ === 'Collapsed') {
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-container')
+				]),
 			_List_fromArray(
 				[
 					$author$project$Main$taskNameView(task),
@@ -11120,7 +11135,10 @@ var $author$project$Main$taskView = function (task) {
 	} else {
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$class('task-container')
+				]),
 			_List_fromArray(
 				[
 					$author$project$Main$taskNameView(task),
@@ -11139,7 +11157,10 @@ var $author$project$Main$completeTasksView = function (model) {
 				$elm$html$Html$text('Completed Tasks'),
 				A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('complete-tasks')
+					]),
 				A2(
 					$elm$core$List$map,
 					$author$project$Main$taskView,
@@ -11160,7 +11181,10 @@ var $author$project$Main$incompleteTasksView = function (model) {
 				$elm$html$Html$text('Pending Tasks'),
 				A2(
 				$elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('incomplete-tasks')
+					]),
 				A2(
 					$elm$core$List$map,
 					$author$project$Main$taskView,
@@ -11180,6 +11204,13 @@ var $author$project$Main$UserEditedNewTaskName = function (a) {
 	return {$: 'UserEditedNewTaskName', a: a};
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
+var $elm$html$Html$Attributes$rows = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'rows',
+		$elm$core$String$fromInt(n));
+};
+var $elm$html$Html$textarea = _VirtualDom_node('textarea');
 var $author$project$Main$newTaskView = function (model) {
 	return A2(
 		$elm$html$Html$div,
@@ -11199,7 +11230,7 @@ var $author$project$Main$newTaskView = function (model) {
 					]),
 				_List_Nil),
 				A2(
-				$elm$html$Html$input,
+				$elm$html$Html$textarea,
 				_List_fromArray(
 					[
 						$elm$html$Html$Attributes$placeholder('Description'),
@@ -11210,7 +11241,8 @@ var $author$project$Main$newTaskView = function (model) {
 							return $author$project$Main$UserEditedNewTaskDescription(
 								$author$project$Main$TaskDescription(taskName));
 						}),
-						$elm$html$Html$Attributes$class('newTaskDescriptionInput')
+						$elm$html$Html$Attributes$class('newTaskDescriptionInput'),
+						$elm$html$Html$Attributes$rows(3)
 					]),
 				_List_Nil),
 				A2(

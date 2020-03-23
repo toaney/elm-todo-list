@@ -4,9 +4,82 @@ body, input{
 }
 
 .content-container {
-    max-width: 300px;
+    max-width: 400px;
     margin: 100px auto;
     padding: 20px;
-    border: 1px solid #000000;
+    border: 2px solid #000000;
     border-radius: 4px;
+}
+
+.newTaskNameInput {
+    width: 100%;
+    background-color: #F9F9F9;
+    border: 2px solid #000;
+    border-radius: 4px;
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 4px;
+}
+
+.newTaskDescriptionInput {
+    width: 100%;
+    background-color: #F9F9F9;
+    border: 2px solid #000;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 4px;
+}
+
+.task-container {
+    /* background-color: darksalmon; */
+    margin-top: 5px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.task-name {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-content: flex-start;
+    background-color: #FF7E7E;
+    border: 2px solid #FF7E7E;
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.task-description {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-content: flex-end;
+    border: 2px solid #FF7E7E;
+    border-radius: 4px;
+    box-sizing: border-box;
+    padding: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    text-overflow: wrap;
+    overflow: hidden;
+}
+
+.incomplete-tasks .task-name {
+    background-color: #FF7E7E;
+    border: 2px solid #FF7E7E;
+}
+
+.incomplete-tasks .task-description {
+    border: 2px solid #FF7E7E;
+}
+
+.complete-tasks .task-name {
+    background-color: #24EEA5;
+    border: 2px solid #24EEA5;
+}
+
+.complete-tasks .task-description {
+    border: 2px solid #24EEA5;
 }

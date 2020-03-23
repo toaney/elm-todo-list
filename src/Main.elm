@@ -472,11 +472,12 @@ newTaskView model =
             , HA.class "newTaskNameInput"
             ]
             []
-        , Html.input
+        , Html.textarea
             [ HA.placeholder "Description"
             , HA.value <| descriptionValue model.newTaskDescription
             , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
             , HA.class "newTaskDescriptionInput"
+            , HA.rows 3
             ]
             []
         , Html.button
@@ -494,7 +495,7 @@ newTaskView model =
 completeTasksView model =
     Html.div []
         [ Html.text "Completed Tasks"
-        , Html.div []
+        , Html.div [ HA.class "complete-tasks" ]
             -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
             (List.map taskView <| List.filter (\task -> task.status == Complete) model.tasks)
         ]
@@ -503,7 +504,7 @@ completeTasksView model =
 incompleteTasksView model =
     Html.div []
         [ Html.text "Pending Tasks"
-        , Html.div []
+        , Html.div [ HA.class "incomplete-tasks" ]
             -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
             (List.map taskView <| List.filter (\task -> task.status /= Complete) model.tasks)
         ]
@@ -520,14 +521,14 @@ taskView task =
     in
     case task.viewState of
         Collapsed ->
-            Html.div []
+            Html.div [ HA.class "task-container" ]
                 [ taskNameView task
                 , deleteButtonView
                 , updateStatusButtonView
                 ]
 
         Expanded ->
-            Html.div []
+            Html.div [ HA.class "task-container" ]
                 [ taskNameView task
                 , taskDescriptionView task
                 , deleteButtonView
@@ -540,7 +541,7 @@ taskNameView task =
     case task.name of
         Editing { buffer } ->
             Html.div
-                []
+                [ HA.class "task-name" ]
                 -- [ HA.placeholder "Description"
                 -- , HA.value <| descriptionValue model.newTaskDescription
                 -- , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
@@ -560,7 +561,7 @@ taskNameView task =
 
         NotEditing taskName ->
             Html.div
-                []
+                [ HA.class "task-name" ]
                 [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue taskName) ]
                 , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
@@ -571,7 +572,7 @@ taskDescriptionView task =
     case task.description of
         Editing { buffer } ->
             Html.div
-                []
+                [ HA.class "task-description" ]
                 [ Html.input
                     [ HE.onInput (\description -> TaskDescription description |> UserEditedTaskDescription task.id)
                     , HA.value (descriptionValue buffer)
@@ -583,7 +584,7 @@ taskDescriptionView task =
 
         NotEditing taskDescription ->
             Html.div
-                []
+                [ HA.class "task-description" ]
                 [ Html.text (descriptionValue taskDescription)
                 , Html.button [ HE.onClick (UserClickedEditTaskDescription task.id) ] [ Html.text "edit" ]
                 ]
