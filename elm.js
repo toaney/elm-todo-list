@@ -10888,6 +10888,7 @@ var $author$project$Main$update = F2(
 					});
 		}
 	});
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
 var $author$project$Main$UserClickedDeleteTask = function (a) {
 	return {$: 'UserClickedDeleteTask', a: a};
 };
@@ -11015,7 +11016,7 @@ var $author$project$Main$taskNameView = function (task) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('task-name')
+					$elm$html$Html$Attributes$class('task-name level-right')
 				]),
 			_List_fromArray(
 				[
@@ -11063,7 +11064,7 @@ var $author$project$Main$taskNameView = function (task) {
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					$elm$html$Html$Attributes$class('task-name')
+					$elm$html$Html$Attributes$class('task-name level-left')
 				]),
 			_List_fromArray(
 				[
@@ -11100,7 +11101,7 @@ var $author$project$Main$taskView = function (task) {
 			[
 				$elm$html$Html$Events$onClick(
 				$author$project$Main$UserClickedUpdateStatus(task.id)),
-				$elm$html$Html$Attributes$class('updateStatusButton')
+				$elm$html$Html$Attributes$class('updateStatusButton level-right')
 			]),
 		_List_fromArray(
 			[
@@ -11112,7 +11113,7 @@ var $author$project$Main$taskView = function (task) {
 			[
 				$elm$html$Html$Events$onClick(
 				$author$project$Main$UserClickedDeleteTask(task.id)),
-				$elm$html$Html$Attributes$class('taskDeleteButton')
+				$elm$html$Html$Attributes$class('taskDeleteButton level-right')
 			]),
 		_List_fromArray(
 			[
@@ -11128,9 +11129,18 @@ var $author$project$Main$taskView = function (task) {
 				]),
 			_List_fromArray(
 				[
-					$author$project$Main$taskNameView(task),
-					deleteButtonView,
-					updateStatusButtonView
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('level')
+						]),
+					_List_fromArray(
+						[
+							$author$project$Main$taskNameView(task),
+							deleteButtonView,
+							updateStatusButtonView
+						]))
 				]));
 	} else {
 		return A2(
@@ -11154,7 +11164,16 @@ var $author$project$Main$completeTasksView = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Completed Tasks'),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('title is-5')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Completed Tasks')
+					])),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -11172,13 +11191,23 @@ var $author$project$Main$completeTasksView = function (model) {
 						model.tasks)))
 			]));
 };
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $author$project$Main$incompleteTasksView = function (model) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Pending Tasks'),
+				A2(
+				$elm$html$Html$h2,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('title is-5')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Pending Tasks')
+					])),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
@@ -11226,7 +11255,7 @@ var $author$project$Main$newTaskView = function (model) {
 						$author$project$Main$nameValue(model.newTaskName)),
 						$elm$html$Html$Events$onInput(
 						A2($elm$core$Basics$composeR, $author$project$Main$TaskName, $author$project$Main$UserEditedNewTaskName)),
-						$elm$html$Html$Attributes$class('newTaskNameInput')
+						$elm$html$Html$Attributes$class('newTaskNameInput level tile is-12')
 					]),
 				_List_Nil),
 				A2(
@@ -11241,7 +11270,7 @@ var $author$project$Main$newTaskView = function (model) {
 							return $author$project$Main$UserEditedNewTaskDescription(
 								$author$project$Main$TaskDescription(taskName));
 						}),
-						$elm$html$Html$Attributes$class('newTaskDescriptionInput'),
+						$elm$html$Html$Attributes$class('newTaskDescriptionInput level tile is-12'),
 						$elm$html$Html$Attributes$rows(3)
 					]),
 				_List_Nil),
@@ -11250,7 +11279,7 @@ var $author$project$Main$newTaskView = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$Events$onClick($author$project$Main$UserClickedAddTask),
-						$elm$html$Html$Attributes$class('newTaskAddButton')
+						$elm$html$Html$Attributes$class('newTaskAddButton is-pulled-right')
 					]),
 				_List_fromArray(
 					[
@@ -11263,11 +11292,20 @@ var $author$project$Main$view = function (model) {
 		$elm$html$Html$div,
 		_List_fromArray(
 			[
-				$elm$html$Html$Attributes$class('content-container')
+				$elm$html$Html$Attributes$class('content-container container box box-shadow')
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Elm To-do List'),
+				A2(
+				$elm$html$Html$h1,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('title is-6 level-item')
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Elm To-do List Tester')
+					])),
 				$author$project$Main$newTaskView(model),
 				$author$project$Main$incompleteTasksView(model),
 				$author$project$Main$completeTasksView(model)

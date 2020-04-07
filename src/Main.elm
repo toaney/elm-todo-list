@@ -3,17 +3,35 @@ module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewS
 {-| TODO
 
 1.  ✓ Make task.description editable
+
 2.  ✓ Rename task.editableName to task.name
+
 3.  ✓ Read up on type variables
     <https://riptutorial.com/elm/example/8809/type-variables>
     <https://elmprogramming.com/type-system.html>
+
 4.  ✓ TRY (stretch goal) combining `EditableName` and `EditableDescription` into a single `Editable a`,
+
 5.  ~ TRY Building generic functions for startEditing, stopEditing, cancelEditing, updateBuffer, etc
+
 6.  TRY (stretch goal) Notice that our Model has `newTaskName` `newTaskDescription` fields. Combine these into a single
     `newTask` field of type `Task`.
+
 7.  TRY (stretch goal) One thing to look at adding is the completion status,
     as well as a button to view complete/incomplete/all tasks.
     That should use most all that we’ve done so far as practice.
+
+8.  integrate Bulma styling
+
+9.  toggle arrow for expanded an unexpanded items
+
+10. allow comments for tasks
+
+11. add filters
+
+12. save tasks into local storage
+
+13. integrate fa icons
 
 -}
 
@@ -445,8 +463,8 @@ view model =
     --     (newTaskView model
     --         :: List.map taskView model.tasks
     --     )
-    Html.div [ HA.class "content-container" ]
-        [ Html.text "Elm To-do List"
+    Html.div [ HA.class "content-container container box box-shadow" ]
+        [ Html.h1 [ HA.class "title is-6 level-item" ] [ Html.text "Elm To-do List Tester" ]
         , newTaskView model
         , incompleteTasksView model
         , completeTasksView model
@@ -469,22 +487,31 @@ newTaskView model =
             [ HA.placeholder "Name"
             , HA.value <| nameValue model.newTaskName
             , HE.onInput <| TaskName >> UserEditedNewTaskName
-            , HA.class "newTaskNameInput"
+            , HA.class "newTaskNameInput level tile is-12"
             ]
             []
         , Html.textarea
             [ HA.placeholder "Description"
             , HA.value <| descriptionValue model.newTaskDescription
             , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
-            , HA.class "newTaskDescriptionInput"
+            , HA.class "newTaskDescriptionInput level tile is-12"
             , HA.rows 3
             ]
             []
         , Html.button
             [ HE.onClick UserClickedAddTask
-            , HA.class "newTaskAddButton"
+            , HA.class "newTaskAddButton is-pulled-right"
             ]
             [ Html.text "add" ]
+        ]
+
+
+incompleteTasksView model =
+    Html.div []
+        [ Html.h2 [ HA.class "title is-5" ] [ Html.text "Pending Tasks" ]
+        , Html.div [ HA.class "incomplete-tasks" ]
+            -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
+            (List.map taskView <| List.filter (\task -> task.status /= Complete) model.tasks)
         ]
 
 
@@ -494,19 +521,10 @@ newTaskView model =
 
 completeTasksView model =
     Html.div []
-        [ Html.text "Completed Tasks"
+        [ Html.h2 [ HA.class "title is-5" ] [ Html.text "Completed Tasks" ]
         , Html.div [ HA.class "complete-tasks" ]
             -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
             (List.map taskView <| List.filter (\task -> task.status == Complete) model.tasks)
-        ]
-
-
-incompleteTasksView model =
-    Html.div []
-        [ Html.text "Pending Tasks"
-        , Html.div [ HA.class "incomplete-tasks" ]
-            -- ( List.map taskView (List.filter (\task -> task.status == Complete )model.tasks) )
-            (List.map taskView <| List.filter (\task -> task.status /= Complete) model.tasks)
         ]
 
 
@@ -514,17 +532,19 @@ taskView : Task -> Html.Html Msg
 taskView task =
     let
         deleteButtonView =
-            Html.button [ HE.onClick (UserClickedDeleteTask task.id), HA.class "taskDeleteButton" ] [ Html.text "delete" ]
+            Html.button [ HE.onClick (UserClickedDeleteTask task.id), HA.class "taskDeleteButton level-right" ] [ Html.text "delete" ]
 
         updateStatusButtonView =
-            Html.button [ HE.onClick (UserClickedUpdateStatus task.id), HA.class "updateStatusButton" ] [ Html.text "toggle complete" ]
+            Html.button [ HE.onClick (UserClickedUpdateStatus task.id), HA.class "updateStatusButton level-right" ] [ Html.text "toggle complete" ]
     in
     case task.viewState of
         Collapsed ->
             Html.div [ HA.class "task-container" ]
-                [ taskNameView task
-                , deleteButtonView
-                , updateStatusButtonView
+                [ Html.div [ HA.class "level" ]
+                    [ taskNameView task
+                    , deleteButtonView
+                    , updateStatusButtonView
+                    ]
                 ]
 
         Expanded ->
@@ -541,7 +561,7 @@ taskNameView task =
     case task.name of
         Editing { buffer } ->
             Html.div
-                [ HA.class "task-name" ]
+                [ HA.class "task-name level-right" ]
                 -- [ HA.placeholder "Description"
                 -- , HA.value <| descriptionValue model.newTaskDescription
                 -- , HE.onInput (\taskName -> TaskDescription taskName |> UserEditedNewTaskDescription)
@@ -561,7 +581,7 @@ taskNameView task =
 
         NotEditing taskName ->
             Html.div
-                [ HA.class "task-name" ]
+                [ HA.class "task-name level-left" ]
                 [ Html.span [ HE.onClick <| UserClickedToggleTaskViewState task.id ] [ Html.text (nameValue taskName) ]
                 , Html.button [ HE.onClick (UserClickedEditTaskName task.id) ] [ Html.text "edit" ]
                 ]
