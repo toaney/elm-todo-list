@@ -60,7 +60,7 @@ type alias Task =
     , id : Id
     , viewState : TaskViewState
     , status : TaskStatus
-    , comments : Editable TaskComment
+    , comments : List TaskComment
     }
 
 
@@ -116,10 +116,10 @@ init =
         []
     , nextTaskId = Id 1
     }
-        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") (TaskComment "placeholder comment")
-        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") (TaskComment "placeholder comment")
-        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") (TaskComment "placeholder comment")
-        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") (TaskComment "placeholder comment")
+        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") [ TaskComment "3", TaskComment "4" ]
+        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") [ TaskComment "1", TaskComment "2" ]
+        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") []
+        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") [ TaskComment "5", TaskComment "6" ]
 
 
 
@@ -141,9 +141,12 @@ type Msg
     | UserClickedCancelEditTaskDescription Id
     | UserEditedTaskDescription Id TaskDescription
     | UserClickedUpdateStatus Id
-    | UserEditedTaskComment Id TaskComment
-    | UserClickedEditTaskComment Id
-    | UserClickedSaveEditTaskComment Id
+
+
+
+-- | UserEditedTaskComment Id TaskComment
+-- | UserClickedEditTaskComment Id
+-- | UserClickedSaveEditTaskComment Id
 
 
 update : Msg -> Model -> Model
@@ -159,7 +162,7 @@ update msg model =
                 | newTaskDescription = TaskDescription ""
                 , newTaskName = TaskName ""
             }
-                |> addTask model.newTaskName model.newTaskDescription model.newTaskComment
+                |> addTask model.newTaskName model.newTaskDescription []
 
         UserEditedNewTaskName newName ->
             { model | newTaskName = newName }
@@ -222,33 +225,26 @@ update msg model =
                 | tasks = editTaskForId taskId toggleStatus model.tasks
             }
 
-        UserEditedTaskComment taskId editedTaskComment ->
-            { model
-                | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
-            }
-
-        UserClickedEditTaskComment taskId ->
-            { model
-                | tasks = editTaskForId taskId startEditingComment model.tasks
-            }
-
-        UserClickedSaveEditTaskComment taskId ->
-            { model
-                | tasks = editTaskForId taskId stopEditingComment model.tasks
-            }
 
 
-
--- UserClickedSaveEditTaskDescription taskId ->
+-- UserEditedTaskComment taskId editedTaskComment ->
 --     { model
---         | tasks = editTaskForId taskId stopEditingDescription model.tasks
+--         | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
+--     }
+-- UserClickedEditTaskComment taskId ->
+--     { model
+--         | tasks = editTaskForId taskId startEditingComment model.tasks
+--     }
+-- UserClickedSaveEditTaskComment taskId ->
+--     { model
+--         | tasks = editTaskForId taskId stopEditingComment model.tasks
 --     }
 
 
-addTask : TaskName -> TaskDescription -> TaskComment -> Model -> Model
-addTask name description comment model =
+addTask : TaskName -> TaskDescription -> List TaskComment -> Model -> Model
+addTask name description comments model =
     { model
-        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete, comments = NotEditing comment } :: model.tasks
+        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete, comments = comments } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -327,14 +323,12 @@ startEditingDescription task =
     }
 
 
-startEditingComment : Task -> Task
-startEditingComment task =
-    { task
-        | comments = startEditing task.comments
-    }
 
-
-
+-- startEditingComment : Task -> Task
+-- startEditingComment task =
+--     { task
+--         | comments = startEditing task.comments
+--     }
 -- addTaskComment : Task -> Task
 -- addTaskComment task =
 --     { task
@@ -369,14 +363,12 @@ setDescriptionBuffer newDescription task =
     }
 
 
-setCommentBuffer : TaskComment -> Task -> Task
-setCommentBuffer newBuffer task =
-    { task
-        | comments = updateBuffer task.comments newBuffer
-    }
 
-
-
+-- setCommentBuffer : TaskComment -> Task -> Task
+-- setCommentBuffer newBuffer task =
+--     { task
+--         | comments = updateBuffer task.comments newBuffer
+--     }
 -- setCommentBuffer : TaskComment -> Task -> Task
 -- setCommentBuffer newBuffer task =
 --     { task
@@ -408,11 +400,12 @@ stopEditingDescription task =
     }
 
 
-stopEditingComment : Task -> Task
-stopEditingComment task =
-    { task
-        | comments = stopEditing task.comments
-    }
+
+-- stopEditingComment : Task -> Task
+-- stopEditingComment task =
+--     { task
+--         | comments = stopEditing task.comments
+--     }
 
 
 cancelEditing : Editable a -> Editable a
@@ -684,25 +677,38 @@ taskDescriptionView task =
 
 taskCommentsView : Task -> Html.Html Msg
 taskCommentsView task =
-    case task.comments of
-        Editing { buffer } ->
-            Html.div
-                []
-                [ Html.input
-                    [ HE.onInput (\comment -> TaskComment comment |> UserEditedTaskComment task.id)
-                    , HA.value (commentValue buffer)
-                    ]
-                    []
-                , Html.button [ HE.onClick (UserClickedSaveEditTaskComment task.id) ] [ Html.text "save" ]
-                , Html.button [ HE.onClick (UserClickedCancelEditTaskDescription task.id) ] [ Html.text "cancel" ]
-                ]
+    -- List.map (\item => item) task.comments
+    Html.div
+        []
+        (task.comments
+            |> List.map
+                (\taskComment ->
+                    Html.div
+                        []
+                        [ Html.text (commentValue taskComment)
+                        ]
+                )
+        )
 
-        NotEditing taskComment ->
-            Html.div
-                []
-                [ Html.text (commentValue taskComment)
-                , Html.button [ HE.onClick (UserClickedEditTaskComment task.id) ] [ Html.text "edit" ]
-                ]
+
+
+-- Editing { buffer } ->
+--     Html.div
+--         []
+--         [ Html.input
+--             [ HE.onInput (\comment -> TaskComment comment |> UserEditedTaskComment task.id)
+--             , HA.value (commentValue buffer)
+--             ]
+--             []
+--         , Html.button [ HE.onClick (UserClickedSaveEditTaskComment task.id) ] [ Html.text "save" ]
+--         , Html.button [ HE.onClick (UserClickedCancelEditTaskDescription task.id) ] [ Html.text "cancel" ]
+--         ]
+-- NotEditing taskComment ->
+--     Html.div
+--         []
+--         [ Html.text (commentValue taskComment)
+--         , Html.button [ HE.onClick (UserClickedEditTaskComment task.id) ] [ Html.text "edit" ]
+--         ]
 
 
 main =
