@@ -48,6 +48,7 @@ import Html.Events as HE
 type alias Model =
     { newTaskName : TaskName
     , newTaskDescription : TaskDescription
+    , newTaskComment : TaskComment
     , tasks : List Task
     , nextTaskId : Id
     }
@@ -59,6 +60,7 @@ type alias Task =
     , id : Id
     , viewState : TaskViewState
     , status : TaskStatus
+    , comments : Editable TaskComment
     }
 
 
@@ -72,6 +74,10 @@ type TaskName
 
 type TaskDescription
     = TaskDescription String
+
+
+type TaskComment
+    = TaskComment String
 
 
 type TaskStatus
@@ -105,14 +111,15 @@ init : Model
 init =
     { newTaskName = TaskName ""
     , newTaskDescription = TaskDescription ""
+    , newTaskComment = TaskComment ""
     , tasks =
         []
     , nextTaskId = Id 1
     }
-        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum")
-        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice")
-        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum")
-        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice")
+        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") (TaskComment "placeholder comment")
+        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") (TaskComment "placeholder comment")
+        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") (TaskComment "placeholder comment")
+        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") (TaskComment "placeholder comment")
 
 
 
@@ -134,6 +141,9 @@ type Msg
     | UserClickedCancelEditTaskDescription Id
     | UserEditedTaskDescription Id TaskDescription
     | UserClickedUpdateStatus Id
+    | UserEditedTaskComment Id TaskComment
+    | UserClickedEditTaskComment Id
+    | UserClickedSaveEditTaskComment Id
 
 
 update : Msg -> Model -> Model
@@ -149,7 +159,7 @@ update msg model =
                 | newTaskDescription = TaskDescription ""
                 , newTaskName = TaskName ""
             }
-                |> addTask model.newTaskName model.newTaskDescription
+                |> addTask model.newTaskName model.newTaskDescription model.newTaskComment
 
         UserEditedNewTaskName newName ->
             { model | newTaskName = newName }
@@ -212,11 +222,33 @@ update msg model =
                 | tasks = editTaskForId taskId toggleStatus model.tasks
             }
 
+        UserEditedTaskComment taskId editedTaskComment ->
+            { model
+                | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
+            }
 
-addTask : TaskName -> TaskDescription -> Model -> Model
-addTask name description model =
+        UserClickedEditTaskComment taskId ->
+            { model
+                | tasks = editTaskForId taskId startEditingComment model.tasks
+            }
+
+        UserClickedSaveEditTaskComment taskId ->
+            { model
+                | tasks = editTaskForId taskId stopEditingComment model.tasks
+            }
+
+
+
+-- UserClickedSaveEditTaskDescription taskId ->
+--     { model
+--         | tasks = editTaskForId taskId stopEditingDescription model.tasks
+--     }
+
+
+addTask : TaskName -> TaskDescription -> TaskComment -> Model -> Model
+addTask name description comment model =
     { model
-        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete } :: model.tasks
+        | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete, comments = NotEditing comment } :: model.tasks
         , nextTaskId = incrementId model.nextTaskId
     }
 
@@ -239,6 +271,11 @@ nameValue (TaskName name) =
 descriptionValue : TaskDescription -> String
 descriptionValue (TaskDescription description) =
     description
+
+
+commentValue : TaskComment -> String
+commentValue (TaskComment comment) =
+    comment
 
 
 
@@ -290,7 +327,19 @@ startEditingDescription task =
     }
 
 
+startEditingComment : Task -> Task
+startEditingComment task =
+    { task
+        | comments = startEditing task.comments
+    }
 
+
+
+-- addTaskComment : Task -> Task
+-- addTaskComment task =
+--     { task
+--         | comments = TaskComment "yo"
+--     }
 -- deleteTask : Id -> List Task -> List Task
 -- deleteTask id =
 --     List.filter (\task -> task.id /= id)
@@ -320,6 +369,21 @@ setDescriptionBuffer newDescription task =
     }
 
 
+setCommentBuffer : TaskComment -> Task -> Task
+setCommentBuffer newBuffer task =
+    { task
+        | comments = updateBuffer task.comments newBuffer
+    }
+
+
+
+-- setCommentBuffer : TaskComment -> Task -> Task
+-- setCommentBuffer newBuffer task =
+--     { task
+--         | comment = updateBuffer task.comment newBuffer
+--     }
+
+
 stopEditing : Editable a -> Editable a
 stopEditing value =
     case value of
@@ -341,6 +405,13 @@ stopEditingDescription : Task -> Task
 stopEditingDescription task =
     { task
         | description = stopEditing task.description
+    }
+
+
+stopEditingComment : Task -> Task
+stopEditingComment task =
+    { task
+        | comments = stopEditing task.comments
     }
 
 
@@ -469,7 +540,7 @@ view model =
         , incompleteTasksView model
         , completeTasksView model
 
-        -- , Html.div []
+        -- , Html.div []git s
         --     [ Html.button [ ] [ Html.text "add" ]
         --     , Html.button [ ] [ Html.text "add" ]
         --     , Html.button [ ] [ Html.text "add" ]
@@ -551,6 +622,7 @@ taskView task =
             Html.div [ HA.class "task-container" ]
                 [ taskNameView task
                 , taskDescriptionView task
+                , taskCommentsView task
                 , deleteButtonView
                 , updateStatusButtonView
                 ]
@@ -607,6 +679,29 @@ taskDescriptionView task =
                 [ HA.class "task-description" ]
                 [ Html.text (descriptionValue taskDescription)
                 , Html.button [ HE.onClick (UserClickedEditTaskDescription task.id) ] [ Html.text "edit" ]
+                ]
+
+
+taskCommentsView : Task -> Html.Html Msg
+taskCommentsView task =
+    case task.comments of
+        Editing { buffer } ->
+            Html.div
+                []
+                [ Html.input
+                    [ HE.onInput (\comment -> TaskComment comment |> UserEditedTaskComment task.id)
+                    , HA.value (commentValue buffer)
+                    ]
+                    []
+                , Html.button [ HE.onClick (UserClickedSaveEditTaskComment task.id) ] [ Html.text "save" ]
+                , Html.button [ HE.onClick (UserClickedCancelEditTaskDescription task.id) ] [ Html.text "cancel" ]
+                ]
+
+        NotEditing taskComment ->
+            Html.div
+                []
+                [ Html.text (commentValue taskComment)
+                , Html.button [ HE.onClick (UserClickedEditTaskComment task.id) ] [ Html.text "edit" ]
                 ]
 
 
