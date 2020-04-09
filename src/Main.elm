@@ -48,7 +48,7 @@ import Html.Events as HE
 type alias Model =
     { newTaskName : TaskName
     , newTaskDescription : TaskDescription
-    , newTaskComment : TaskComment
+    , newTaskComment : CommentList
     , tasks : List Task
     , nextTaskId : Id
     }
@@ -60,7 +60,7 @@ type alias Task =
     , id : Id
     , viewState : TaskViewState
     , status : TaskStatus
-    , comments : List TaskComment
+    , comments : CommentList
     }
 
 
@@ -78,6 +78,12 @@ type TaskDescription
 
 type TaskComment
     = TaskComment String
+
+
+type alias CommentList =
+    { savedComments : List TaskComment
+    , buffer : TaskComment
+    }
 
 
 type TaskStatus
@@ -111,15 +117,15 @@ init : Model
 init =
     { newTaskName = TaskName ""
     , newTaskDescription = TaskDescription ""
-    , newTaskComment = TaskComment ""
+    , newTaskComment = { savedComments = [], buffer = TaskComment "" }
     , tasks =
         []
     , nextTaskId = Id 1
     }
-        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") [ TaskComment "3", TaskComment "4" ]
-        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") [ TaskComment "1", TaskComment "2" ]
-        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") []
-        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") [ TaskComment "5", TaskComment "6" ]
+        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
+        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
+        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
+        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
 
 
 
@@ -141,10 +147,10 @@ type Msg
     | UserClickedCancelEditTaskDescription Id
     | UserEditedTaskDescription Id TaskDescription
     | UserClickedUpdateStatus Id
+    | UserEditedTaskComment Id TaskComment
 
 
 
--- | UserEditedTaskComment Id TaskComment
 -- | UserClickedEditTaskComment Id
 -- | UserClickedSaveEditTaskComment Id
 
@@ -162,7 +168,7 @@ update msg model =
                 | newTaskDescription = TaskDescription ""
                 , newTaskName = TaskName ""
             }
-                |> addTask model.newTaskName model.newTaskDescription []
+                |> addTask model.newTaskName model.newTaskDescription { savedComments = [], buffer = TaskComment "" }
 
         UserEditedNewTaskName newName ->
             { model | newTaskName = newName }
@@ -225,12 +231,16 @@ update msg model =
                 | tasks = editTaskForId taskId toggleStatus model.tasks
             }
 
+        UserEditedTaskComment taskId editedTaskComment ->
+            { model
+                | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
+            }
 
 
--- UserEditedTaskComment taskId editedTaskComment ->
---     { model
---         | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
---     }
+
+-- { model
+--     | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
+-- }
 -- UserClickedEditTaskComment taskId ->
 --     { model
 --         | tasks = editTaskForId taskId startEditingComment model.tasks
@@ -241,7 +251,7 @@ update msg model =
 --     }
 
 
-addTask : TaskName -> TaskDescription -> List TaskComment -> Model -> Model
+addTask : TaskName -> TaskDescription -> CommentList -> Model -> Model
 addTask name description comments model =
     { model
         | tasks = { name = NotEditing name, id = model.nextTaskId, description = NotEditing description, viewState = Collapsed, status = Incomplete, comments = comments } :: model.tasks
@@ -363,11 +373,23 @@ setDescriptionBuffer newDescription task =
     }
 
 
+setCommentBuffer : TaskComment -> Task -> Task
+setCommentBuffer newComment task =
+    { task
+        | comments = { savedComments = task.comments.savedComments, buffer = newComment }
+    }
+
+
 
 -- setCommentBuffer : TaskComment -> Task -> Task
--- setCommentBuffer newBuffer task =
+-- setCommentBuffer newComment task =
 --     { task
---         | comments = updateBuffer task.comments newBuffer
+--         | comments =
+--             case comments of
+--                 Editing { originalValue } ->
+--                     Editing { originalValue = originalValue, buffer = newComment }
+--                 NotEditing _ ->
+--                     task.comments
 --     }
 -- setCommentBuffer : TaskComment -> Task -> Task
 -- setCommentBuffer newBuffer task =
@@ -680,15 +702,24 @@ taskCommentsView task =
     -- List.map (\item => item) task.comments
     Html.div
         []
-        (task.comments
-            |> List.map
-                (\taskComment ->
-                    Html.div
-                        []
-                        [ Html.text (commentValue taskComment)
-                        ]
-                )
-        )
+        [ Html.div
+            []
+            (task.comments.savedComments
+                |> List.map
+                    (\taskComment ->
+                        Html.div
+                            [ HA.class "task-description" ]
+                            [ Html.text (commentValue taskComment)
+                            ]
+                    )
+            )
+        , Html.input
+            [ HE.onInput (\comment -> TaskComment comment |> UserEditedTaskComment task.id)
+            , HA.value (commentValue task.comments.buffer)
+            ]
+            []
+        , Html.button [] [ Html.text "edit" ]
+        ]
 
 
 

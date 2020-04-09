@@ -5078,36 +5078,59 @@ var $author$project$Main$init = A4(
 	$author$project$Main$addTask,
 	$author$project$Main$TaskName('take out trash'),
 	$author$project$Main$TaskDescription('milk, eggs, juice'),
-	_List_fromArray(
-		[
-			$author$project$Main$TaskComment('5'),
-			$author$project$Main$TaskComment('6')
-		]),
+	{
+		buffer: $author$project$Main$TaskComment('4'),
+		savedComments: _List_fromArray(
+			[
+				$author$project$Main$TaskComment('1'),
+				$author$project$Main$TaskComment('2'),
+				$author$project$Main$TaskComment('3')
+			])
+	},
 	A4(
 		$author$project$Main$addTask,
 		$author$project$Main$TaskName('do dishes'),
 		$author$project$Main$TaskDescription('make bed and vacuum'),
-		_List_Nil,
+		{
+			buffer: $author$project$Main$TaskComment('4'),
+			savedComments: _List_fromArray(
+				[
+					$author$project$Main$TaskComment('1'),
+					$author$project$Main$TaskComment('2'),
+					$author$project$Main$TaskComment('3')
+				])
+		},
 		A4(
 			$author$project$Main$addTask,
 			$author$project$Main$TaskName('buy groceries'),
 			$author$project$Main$TaskDescription('milk, eggs, juice'),
-			_List_fromArray(
-				[
-					$author$project$Main$TaskComment('1'),
-					$author$project$Main$TaskComment('2')
-				]),
+			{
+				buffer: $author$project$Main$TaskComment('4'),
+				savedComments: _List_fromArray(
+					[
+						$author$project$Main$TaskComment('1'),
+						$author$project$Main$TaskComment('2'),
+						$author$project$Main$TaskComment('3')
+					])
+			},
 			A4(
 				$author$project$Main$addTask,
 				$author$project$Main$TaskName('clean room'),
 				$author$project$Main$TaskDescription('make bed and vacuum'),
-				_List_fromArray(
-					[
-						$author$project$Main$TaskComment('3'),
-						$author$project$Main$TaskComment('4')
-					]),
 				{
-					newTaskComment: $author$project$Main$TaskComment(''),
+					buffer: $author$project$Main$TaskComment('4'),
+					savedComments: _List_fromArray(
+						[
+							$author$project$Main$TaskComment('1'),
+							$author$project$Main$TaskComment('2'),
+							$author$project$Main$TaskComment('3')
+						])
+				},
+				{
+					newTaskComment: {
+						buffer: $author$project$Main$TaskComment(''),
+						savedComments: _List_Nil
+					},
 					newTaskDescription: $author$project$Main$TaskDescription(''),
 					newTaskName: $author$project$Main$TaskName(''),
 					nextTaskId: $author$project$Main$Id(1),
@@ -10692,6 +10715,14 @@ var $author$project$Main$editTaskForId = F3(
 		};
 		return A2($elm$core$List$map, editTaskIfId, tasks);
 	});
+var $author$project$Main$setCommentBuffer = F2(
+	function (newComment, task) {
+		return _Utils_update(
+			task,
+			{
+				comments: {buffer: newComment, savedComments: task.comments.savedComments}
+			});
+	});
 var $author$project$Main$Editing = function (a) {
 	return {$: 'Editing', a: a};
 };
@@ -10804,7 +10835,10 @@ var $author$project$Main$update = F2(
 					$author$project$Main$addTask,
 					model.newTaskName,
 					model.newTaskDescription,
-					_List_Nil,
+					{
+						buffer: $author$project$Main$TaskComment(''),
+						savedComments: _List_Nil
+					},
 					_Utils_update(
 						model,
 						{
@@ -10901,12 +10935,24 @@ var $author$project$Main$update = F2(
 							$author$project$Main$setDescriptionBuffer(editedTaskDescription),
 							model.tasks)
 					});
-			default:
+			case 'UserClickedUpdateStatus':
 				var taskId = msg.a;
 				return _Utils_update(
 					model,
 					{
 						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$toggleStatus, model.tasks)
+					});
+			default:
+				var taskId = msg.a;
+				var editedTaskComment = msg.b;
+				return _Utils_update(
+					model,
+					{
+						tasks: A3(
+							$author$project$Main$editTaskForId,
+							taskId,
+							$author$project$Main$setCommentBuffer(editedTaskComment),
+							model.tasks)
 					});
 		}
 	});
@@ -10917,6 +10963,10 @@ var $author$project$Main$UserClickedDeleteTask = function (a) {
 var $author$project$Main$UserClickedUpdateStatus = function (a) {
 	return {$: 'UserClickedUpdateStatus', a: a};
 };
+var $author$project$Main$UserEditedTaskComment = F2(
+	function (a, b) {
+		return {$: 'UserEditedTaskComment', a: a, b: b};
+	});
 var $author$project$Main$commentValue = function (_v0) {
 	var comment = _v0.a;
 	return comment;
@@ -10925,19 +10975,50 @@ var $author$project$Main$taskCommentsView = function (task) {
 	return A2(
 		$elm$html$Html$div,
 		_List_Nil,
-		A2(
-			$elm$core$List$map,
-			function (taskComment) {
-				return A2(
-					$elm$html$Html$div,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(
-							$author$project$Main$commentValue(taskComment))
-						]));
-			},
-			task.comments));
+		_List_fromArray(
+			[
+				A2(
+				$elm$html$Html$div,
+				_List_Nil,
+				A2(
+					$elm$core$List$map,
+					function (taskComment) {
+						return A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('task-description')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									$author$project$Main$commentValue(taskComment))
+								]));
+					},
+					task.comments.savedComments)),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onInput(
+						function (comment) {
+							return A2(
+								$author$project$Main$UserEditedTaskComment,
+								task.id,
+								$author$project$Main$TaskComment(comment));
+						}),
+						$elm$html$Html$Attributes$value(
+						$author$project$Main$commentValue(task.comments.buffer))
+					]),
+				_List_Nil),
+				A2(
+				$elm$html$Html$button,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text('edit')
+					]))
+			]));
 };
 var $author$project$Main$UserClickedCancelEditTaskDescription = function (a) {
 	return {$: 'UserClickedCancelEditTaskDescription', a: a};
@@ -11359,4 +11440,4 @@ var $author$project$Main$view = function (model) {
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
 	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"],"UserEditedTaskComment":["Main.Id","Main.TaskComment"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskComment":{"args":[],"tags":{"TaskComment":["String.String"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
