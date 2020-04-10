@@ -41,8 +41,8 @@ body, input{
     display: flex;
     justify-content: space-between;
     align-content: flex-start;
-    background-color: #FF7E7E;
-    border: 2px solid #FF7E7E;
+    background-color:rgb(126, 206, 255);
+    border: 2px solid rgb(126, 206, 255);
     border-radius: 4px;
     box-sizing: border-box;
     padding: 5px;
@@ -55,7 +55,7 @@ body, input{
     display: flex;
     justify-content: space-between;
     align-content: flex-end;
-    border: 2px solid #FF7E7E;
+    border: 2px solid rgb(126, 206, 255);
     border-radius: 4px;
     box-sizing: border-box;
     padding: 5px;
@@ -66,22 +66,32 @@ body, input{
 }
 
 .incomplete-tasks .task-name {
-    background-color: #FF7E7E;
-    border: 2px solid #FF7E7E;
+    background-color: rgb(126, 206, 255);
+    border: 2px solid rgb(126, 206, 255);
 }
 
 .incomplete-tasks .task-description {
-    border: 2px solid #FF7E7E;
+    border: 2px solid rgb(126, 206, 255);
 }
 
 .complete-tasks .task-name {
-    background-color: #24EEA5;
-    border: 2px solid #24EEA5;
+    background-color: rgb(79, 135, 255);
+    border: 2px solid rgb(79, 135, 255);
 }
 
 .complete-tasks .task-description {
-    border: 2px solid #24EEA5;
+    border: 2px solid rgb(79, 135, 255);
 } 
+
+.newCommentInput {
+    width: 79%;
+    background-color: #F9F9F9;
+    border: 2px solid rgb(65, 65, 65);
+    border-radius: 4px;
+    height: 30px;
+    margin-bottom: 10px;
+    padding: 4px;
+}
 
 
 /* *************** Non-Bulma styling ************** */
@@ -128,19 +138,19 @@ body, input{
 }
 
 .incomplete-tasks .task-name {
-    background-color: #FF7E7E;
-    border: 2px solid #FF7E7E;
+    background-color: rgb(126, 206, 255);
+    border: 2px solid rgb(126, 206, 255);
 }
 
 .incomplete-tasks .task-description {
-    border: 2px solid #FF7E7E;
+    border: 2px solid rgb(126, 206, 255);
 }
 
 .complete-tasks .task-name {
-    background-color: #24EEA5;
-    border: 2px solid #24EEA5;
+    background-color: rgb(79, 135, 255);
+    border: 2px solid rgb(79, 135, 255);
 }
 
 .complete-tasks .task-description {
-    border: 2px solid #24EEA5;
+    border: 2px solid rgb(79, 135, 255);
 }  */

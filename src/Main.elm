@@ -1,4 +1,4 @@
-module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, toggleTaskViewState)
+port module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), TaskViewState(..), deleteTask, main, nameValue, toggleTaskViewState)
 
 {-| TODO
 
@@ -39,6 +39,8 @@ import Browser
 import Html
 import Html.Attributes as HA
 import Html.Events as HE
+import Json.Decode as Decoder
+import Json.Encode as Encode
 
 
 
@@ -62,6 +64,28 @@ type alias Task =
     , status : TaskStatus
     , comments : CommentList
     }
+
+
+taskEncoder : Task -> Encode.Value
+taskEncoder task =
+    Encode.object
+        [ ( "name", Encode.string (nameValue (editableValue task.name)) )
+        , ( "description", Encode.string (descriptionValue (editableValue task.description)) )
+        , ( "id", Encode.int (intValue task.id) )
+        ]
+
+
+
+-- nameValue : TaskName -> String
+-- nameValue (TaskName name) =
+--     name
+
+
+tasksEncoder : List Task -> Encode.Value
+tasksEncoder tasks =
+    Encode.list
+        (\t -> taskEncoder t)
+        tasks
 
 
 type Id
@@ -113,22 +137,110 @@ type TaskViewState
 --     | TaskEditableDescription
 
 
-init : Model
-init =
-    { newTaskName = TaskName ""
-    , newTaskDescription = TaskDescription ""
-    , newTaskComment = { savedComments = [], buffer = TaskComment "" }
-    , tasks =
-        []
-    , nextTaskId = Id 1
-    }
-        |> addTask (TaskName "clean room") (TaskDescription "make bed and vacuum") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
-        |> addTask (TaskName "buy groceries") (TaskDescription "milk, eggs, juice") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
-        |> addTask (TaskName "do dishes") (TaskDescription "make bed and vacuum") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
-        |> addTask (TaskName "take out trash") (TaskDescription "milk, eggs, juice") { savedComments = [ TaskComment "1", TaskComment "2", TaskComment "3" ], buffer = TaskComment "4" }
+init : String -> ( Model, Cmd Msg )
+init localData =
+    let
+        decodedLocalData =
+            Decoder.decodeString tasksDecoder localData
+
+        tasks =
+            case decodedLocalData of
+                Ok decodedTaskList ->
+                    decodedTaskList
+
+                Err _ ->
+                    []
+    in
+    ( { newTaskName = TaskName ""
+      , newTaskDescription = TaskDescription ""
+      , newTaskComment = { savedComments = [], buffer = TaskComment "" }
+      , tasks = tasks
+      , nextTaskId = Id 1
+      }
+    , Cmd.none
+    )
 
 
 
+-- taskDecoder =
+--     let
+--         -- decodedValue : Decoder.Decoder a
+--         decodedValue val =
+--             case val of
+--                 Ok a ->
+--                     a
+--                 Err _ ->
+--                     ""
+--     in
+--     Decoder.map Task
+--         (Decoder.succeed (NotEditing (TaskName (Decoder.at [ "name" ] Decoder.string |> Decoder.andThen (\value -> decodedValue value)))))
+--         (Decoder.succeed (NotEditing (TaskDescription (Decoder.at [ "description" ] Decoder.string))))
+--         (Decoder.succeed (Id (Decoder.at [ "id" ] Decoder.int)))
+--         (Decoder.succeed Collapsed)
+--         (Decoder.succeed Incomplete)
+--         (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+-- taskDecoder : Decoder.Decoder Task -> String
+
+
+taskDecoder =
+    let
+        -- decodedValue : Decoder.Decoder a
+        decodedValue val =
+            case val of
+                Ok a ->
+                    a
+
+                Err _ ->
+                    ""
+    in
+    Decoder.map6 Task
+        (Decoder.at [ "name" ] Decoder.string
+            |> Decoder.andThen
+                (\name ->
+                    Decoder.succeed (NotEditing (TaskName name))
+                )
+        )
+        -- (Decoder.succeed (NotEditing (TaskDescription (Decoder.at [ "description" ] Decoder.string))))
+        (Decoder.at [ "description" ] Decoder.string
+            |> Decoder.andThen
+                (\description ->
+                    Decoder.succeed (NotEditing (TaskDescription description))
+                )
+        )
+        -- (Decoder.succeed (Id (Decoder.at [ "id" ] Decoder.int)))
+        (Decoder.at [ "id" ] Decoder.int
+            |> Decoder.andThen
+                (\id ->
+                    Decoder.succeed (Id id)
+                )
+        )
+        (Decoder.succeed Collapsed)
+        (Decoder.succeed Incomplete)
+        (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+
+
+tasksDecoder : Decoder.Decoder (List Task)
+tasksDecoder =
+    Decoder.list taskDecoder
+
+
+
+-- "[{"name":"take out trash","description":"milk, eggs, juice","id":4},{"name":"do dishes again","description":"make bed and vacuum","id":3},{"name":"buy groceries","description":"milk, eggs, juice","id":2},{"name":"clean room","description":"make bed and vacuum","id":1}]"
+-- taskEncoder : Task -> Encode.Value
+-- taskEncoder task =
+--     Encode.object
+--         [ ( "name", Encode.string (nameValue (editableValue task.name)) )
+--         , ( "description", Encode.string (descriptionValue (editableValue task.description)) )
+--         , ( "id", Encode.int (intValue task.id) )
+--         ]
+-- type alias Task =
+--     { name : Editable TaskName
+--     , description : Editable TaskDescription
+--     , id : Id
+--     , viewState : TaskViewState
+--     , status : TaskStatus
+--     , comments : CommentList
+--     }
 -- UPDATE
 
 
@@ -148,6 +260,10 @@ type Msg
     | UserEditedTaskDescription Id TaskDescription
     | UserClickedUpdateStatus Id
     | UserEditedTaskComment Id TaskComment
+    | UserClickedAddComment Id
+
+
+port persistTasks : Encode.Value -> Cmd msg
 
 
 
@@ -155,7 +271,7 @@ type Msg
 -- | UserClickedSaveEditTaskComment Id
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UserClickedAddTask ->
@@ -164,77 +280,118 @@ update msg model =
             --     , nextTaskId = model.nextTaskId
             --     , tasks = model.tasks
             -- }
-            { model
+            ( { model
                 | newTaskDescription = TaskDescription ""
                 , newTaskName = TaskName ""
-            }
+              }
                 |> addTask model.newTaskName model.newTaskDescription { savedComments = [], buffer = TaskComment "" }
+            , Cmd.none
+            )
 
         UserEditedNewTaskName newName ->
-            { model | newTaskName = newName }
+            ( { model | newTaskName = newName }
+            , Cmd.none
+            )
 
         UserEditedNewTaskDescription newDescription ->
-            { model | newTaskDescription = newDescription }
+            ( { model | newTaskDescription = newDescription }
+            , Cmd.none
+            )
 
         UserClickedDeleteTask taskId ->
-            { model
+            ( { model
                 | tasks = deleteTask taskId model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedToggleTaskViewState taskId ->
-            { model
+            ( { model
                 | tasks = toggleTaskViewState taskId model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedEditTaskName taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId startEditingName model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedSaveEditTaskName taskId ->
-            { model
-                | tasks = editTaskForId taskId stopEditingName model.tasks
-            }
+            let
+                updatedModel =
+                    { model
+                        | tasks = editTaskForId taskId stopEditingName model.tasks
+                    }
+            in
+            ( updatedModel
+            , persistTasks (tasksEncoder updatedModel.tasks)
+            )
 
         UserClickedCancelEditTaskName taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId cancelEditingName model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserEditedTaskName taskId editedTaskName ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId (setNameBuffer editedTaskName) model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedEditTaskDescription taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId startEditingDescription model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedSaveEditTaskDescription taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId stopEditingDescription model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedCancelEditTaskDescription taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId cancelEditingDescription model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserEditedTaskDescription taskId editedTaskDescription ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId (setDescriptionBuffer editedTaskDescription) model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserClickedUpdateStatus taskId ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId toggleStatus model.tasks
-            }
+              }
+            , Cmd.none
+            )
 
         UserEditedTaskComment taskId editedTaskComment ->
-            { model
+            ( { model
                 | tasks = editTaskForId taskId (setCommentBuffer editedTaskComment) model.tasks
-            }
+              }
+            , Cmd.none
+            )
+
+        UserClickedAddComment taskId ->
+            ( { model
+                | tasks = editTaskForId taskId addComment model.tasks
+              }
+            , Cmd.none
+            )
 
 
 
@@ -267,6 +424,21 @@ incrementId id =
 mapId : (Int -> Int) -> Id -> Id
 mapId f (Id id) =
     Id (f id)
+
+
+editableValue : Editable a -> a
+editableValue value =
+    case value of
+        NotEditing a ->
+            a
+
+        Editing { originalValue } ->
+            originalValue
+
+
+intValue : Id -> Int
+intValue (Id int) =
+    int
 
 
 nameValue : TaskName -> String
@@ -377,6 +549,21 @@ setCommentBuffer : TaskComment -> Task -> Task
 setCommentBuffer newComment task =
     { task
         | comments = { savedComments = task.comments.savedComments, buffer = newComment }
+    }
+
+
+
+-- stopEditingDescription : Task -> Task
+-- stopEditingDescription task =
+--     { task
+--         | description = stopEditing task.description
+--     }
+
+
+addComment : Task -> Task
+addComment task =
+    { task
+        | comments = { savedComments = task.comments.savedComments ++ [ task.comments.buffer ], buffer = TaskComment "" }
     }
 
 
@@ -618,7 +805,7 @@ taskView : Task -> Html.Html Msg
 taskView task =
     let
         deleteButtonView =
-            Html.button [ HE.onClick (UserClickedDeleteTask task.id), HA.class "taskDeleteButton level-right" ] [ Html.text "delete" ]
+            Html.button [ HE.onClick (UserClickedDeleteTask task.id), HA.class "taskDeleteButton level-right" ] [ Html.text "delete task" ]
 
         updateStatusButtonView =
             Html.button [ HE.onClick (UserClickedUpdateStatus task.id), HA.class "updateStatusButton level-right" ] [ Html.text "toggle complete" ]
@@ -716,9 +903,12 @@ taskCommentsView task =
         , Html.input
             [ HE.onInput (\comment -> TaskComment comment |> UserEditedTaskComment task.id)
             , HA.value (commentValue task.comments.buffer)
+            , HA.class "newCommentInput"
             ]
             []
-        , Html.button [] [ Html.text "edit" ]
+        , Html.button
+            [ HE.onClick (UserClickedAddComment task.id) ]
+            [ Html.text "add comment" ]
         ]
 
 
@@ -740,7 +930,13 @@ taskCommentsView task =
 --         [ Html.text (commentValue taskComment)
 --         , Html.button [ HE.onClick (UserClickedEditTaskComment task.id) ] [ Html.text "edit" ]
 --         ]
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.none
 
 
 main =
-    Browser.sandbox { init = init, update = update, view = view }
+    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }

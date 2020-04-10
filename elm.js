@@ -80,6 +80,271 @@ function A9(fun, a, b, c, d, e, f, g, h, i) {
 console.warn('Compiled in DEBUG mode. Follow the advice at https://elm-lang.org/0.19.1/optimize for better performance and smaller assets.');
 
 
+// EQUALITY
+
+function _Utils_eq(x, y)
+{
+	for (
+		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
+		isEqual && (pair = stack.pop());
+		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
+		)
+	{}
+
+	return isEqual;
+}
+
+function _Utils_eqHelp(x, y, depth, stack)
+{
+	if (x === y)
+	{
+		return true;
+	}
+
+	if (typeof x !== 'object' || x === null || y === null)
+	{
+		typeof x === 'function' && _Debug_crash(5);
+		return false;
+	}
+
+	if (depth > 100)
+	{
+		stack.push(_Utils_Tuple2(x,y));
+		return true;
+	}
+
+	/**/
+	if (x.$ === 'Set_elm_builtin')
+	{
+		x = $elm$core$Set$toList(x);
+		y = $elm$core$Set$toList(y);
+	}
+	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
+	{
+		x = $elm$core$Dict$toList(x);
+		y = $elm$core$Dict$toList(y);
+	}
+	//*/
+
+	/**_UNUSED/
+	if (x.$ < 0)
+	{
+		x = $elm$core$Dict$toList(x);
+		y = $elm$core$Dict$toList(y);
+	}
+	//*/
+
+	for (var key in x)
+	{
+		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+var _Utils_equal = F2(_Utils_eq);
+var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
+
+
+
+// COMPARISONS
+
+// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
+// the particular integer values assigned to LT, EQ, and GT.
+
+function _Utils_cmp(x, y, ord)
+{
+	if (typeof x !== 'object')
+	{
+		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
+	}
+
+	/**/
+	if (x instanceof String)
+	{
+		var a = x.valueOf();
+		var b = y.valueOf();
+		return a === b ? 0 : a < b ? -1 : 1;
+	}
+	//*/
+
+	/**_UNUSED/
+	if (typeof x.$ === 'undefined')
+	//*/
+	/**/
+	if (x.$[0] === '#')
+	//*/
+	{
+		return (ord = _Utils_cmp(x.a, y.a))
+			? ord
+			: (ord = _Utils_cmp(x.b, y.b))
+				? ord
+				: _Utils_cmp(x.c, y.c);
+	}
+
+	// traverse conses until end of a list or a mismatch
+	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
+	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
+}
+
+var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
+var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
+var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
+var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
+
+var _Utils_compare = F2(function(x, y)
+{
+	var n = _Utils_cmp(x, y);
+	return n < 0 ? $elm$core$Basics$LT : n ? $elm$core$Basics$GT : $elm$core$Basics$EQ;
+});
+
+
+// COMMON VALUES
+
+var _Utils_Tuple0_UNUSED = 0;
+var _Utils_Tuple0 = { $: '#0' };
+
+function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
+function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
+
+function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
+function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
+
+function _Utils_chr_UNUSED(c) { return c; }
+function _Utils_chr(c) { return new String(c); }
+
+
+// RECORDS
+
+function _Utils_update(oldRecord, updatedFields)
+{
+	var newRecord = {};
+
+	for (var key in oldRecord)
+	{
+		newRecord[key] = oldRecord[key];
+	}
+
+	for (var key in updatedFields)
+	{
+		newRecord[key] = updatedFields[key];
+	}
+
+	return newRecord;
+}
+
+
+// APPEND
+
+var _Utils_append = F2(_Utils_ap);
+
+function _Utils_ap(xs, ys)
+{
+	// append Strings
+	if (typeof xs === 'string')
+	{
+		return xs + ys;
+	}
+
+	// append Lists
+	if (!xs.b)
+	{
+		return ys;
+	}
+	var root = _List_Cons(xs.a, ys);
+	xs = xs.b
+	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		curr = curr.b = _List_Cons(xs.a, ys);
+	}
+	return root;
+}
+
+
+
+var _List_Nil_UNUSED = { $: 0 };
+var _List_Nil = { $: '[]' };
+
+function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
+function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
+
+
+var _List_cons = F2(_List_Cons);
+
+function _List_fromArray(arr)
+{
+	var out = _List_Nil;
+	for (var i = arr.length; i--; )
+	{
+		out = _List_Cons(arr[i], out);
+	}
+	return out;
+}
+
+function _List_toArray(xs)
+{
+	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
+	{
+		out.push(xs.a);
+	}
+	return out;
+}
+
+var _List_map2 = F3(function(f, xs, ys)
+{
+	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
+	{
+		arr.push(A2(f, xs.a, ys.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map3 = F4(function(f, xs, ys, zs)
+{
+	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A3(f, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map4 = F5(function(f, ws, xs, ys, zs)
+{
+	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
+{
+	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
+	{
+		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
+	}
+	return _List_fromArray(arr);
+});
+
+var _List_sortBy = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		return _Utils_cmp(f(a), f(b));
+	}));
+});
+
+var _List_sortWith = F2(function(f, xs)
+{
+	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
+		var ord = A2(f, a, b);
+		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
+	}));
+});
+
+
+
 var _JsArray_empty = [];
 
 function _JsArray_singleton(value)
@@ -525,271 +790,6 @@ function _Debug_regionToString(region)
 	}
 	return 'on lines ' + region.start.line + ' through ' + region.end.line;
 }
-
-
-
-// EQUALITY
-
-function _Utils_eq(x, y)
-{
-	for (
-		var pair, stack = [], isEqual = _Utils_eqHelp(x, y, 0, stack);
-		isEqual && (pair = stack.pop());
-		isEqual = _Utils_eqHelp(pair.a, pair.b, 0, stack)
-		)
-	{}
-
-	return isEqual;
-}
-
-function _Utils_eqHelp(x, y, depth, stack)
-{
-	if (x === y)
-	{
-		return true;
-	}
-
-	if (typeof x !== 'object' || x === null || y === null)
-	{
-		typeof x === 'function' && _Debug_crash(5);
-		return false;
-	}
-
-	if (depth > 100)
-	{
-		stack.push(_Utils_Tuple2(x,y));
-		return true;
-	}
-
-	/**/
-	if (x.$ === 'Set_elm_builtin')
-	{
-		x = $elm$core$Set$toList(x);
-		y = $elm$core$Set$toList(y);
-	}
-	if (x.$ === 'RBNode_elm_builtin' || x.$ === 'RBEmpty_elm_builtin')
-	{
-		x = $elm$core$Dict$toList(x);
-		y = $elm$core$Dict$toList(y);
-	}
-	//*/
-
-	/**_UNUSED/
-	if (x.$ < 0)
-	{
-		x = $elm$core$Dict$toList(x);
-		y = $elm$core$Dict$toList(y);
-	}
-	//*/
-
-	for (var key in x)
-	{
-		if (!_Utils_eqHelp(x[key], y[key], depth + 1, stack))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
-var _Utils_equal = F2(_Utils_eq);
-var _Utils_notEqual = F2(function(a, b) { return !_Utils_eq(a,b); });
-
-
-
-// COMPARISONS
-
-// Code in Generate/JavaScript.hs, Basics.js, and List.js depends on
-// the particular integer values assigned to LT, EQ, and GT.
-
-function _Utils_cmp(x, y, ord)
-{
-	if (typeof x !== 'object')
-	{
-		return x === y ? /*EQ*/ 0 : x < y ? /*LT*/ -1 : /*GT*/ 1;
-	}
-
-	/**/
-	if (x instanceof String)
-	{
-		var a = x.valueOf();
-		var b = y.valueOf();
-		return a === b ? 0 : a < b ? -1 : 1;
-	}
-	//*/
-
-	/**_UNUSED/
-	if (typeof x.$ === 'undefined')
-	//*/
-	/**/
-	if (x.$[0] === '#')
-	//*/
-	{
-		return (ord = _Utils_cmp(x.a, y.a))
-			? ord
-			: (ord = _Utils_cmp(x.b, y.b))
-				? ord
-				: _Utils_cmp(x.c, y.c);
-	}
-
-	// traverse conses until end of a list or a mismatch
-	for (; x.b && y.b && !(ord = _Utils_cmp(x.a, y.a)); x = x.b, y = y.b) {} // WHILE_CONSES
-	return ord || (x.b ? /*GT*/ 1 : y.b ? /*LT*/ -1 : /*EQ*/ 0);
-}
-
-var _Utils_lt = F2(function(a, b) { return _Utils_cmp(a, b) < 0; });
-var _Utils_le = F2(function(a, b) { return _Utils_cmp(a, b) < 1; });
-var _Utils_gt = F2(function(a, b) { return _Utils_cmp(a, b) > 0; });
-var _Utils_ge = F2(function(a, b) { return _Utils_cmp(a, b) >= 0; });
-
-var _Utils_compare = F2(function(x, y)
-{
-	var n = _Utils_cmp(x, y);
-	return n < 0 ? $elm$core$Basics$LT : n ? $elm$core$Basics$GT : $elm$core$Basics$EQ;
-});
-
-
-// COMMON VALUES
-
-var _Utils_Tuple0_UNUSED = 0;
-var _Utils_Tuple0 = { $: '#0' };
-
-function _Utils_Tuple2_UNUSED(a, b) { return { a: a, b: b }; }
-function _Utils_Tuple2(a, b) { return { $: '#2', a: a, b: b }; }
-
-function _Utils_Tuple3_UNUSED(a, b, c) { return { a: a, b: b, c: c }; }
-function _Utils_Tuple3(a, b, c) { return { $: '#3', a: a, b: b, c: c }; }
-
-function _Utils_chr_UNUSED(c) { return c; }
-function _Utils_chr(c) { return new String(c); }
-
-
-// RECORDS
-
-function _Utils_update(oldRecord, updatedFields)
-{
-	var newRecord = {};
-
-	for (var key in oldRecord)
-	{
-		newRecord[key] = oldRecord[key];
-	}
-
-	for (var key in updatedFields)
-	{
-		newRecord[key] = updatedFields[key];
-	}
-
-	return newRecord;
-}
-
-
-// APPEND
-
-var _Utils_append = F2(_Utils_ap);
-
-function _Utils_ap(xs, ys)
-{
-	// append Strings
-	if (typeof xs === 'string')
-	{
-		return xs + ys;
-	}
-
-	// append Lists
-	if (!xs.b)
-	{
-		return ys;
-	}
-	var root = _List_Cons(xs.a, ys);
-	xs = xs.b
-	for (var curr = root; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		curr = curr.b = _List_Cons(xs.a, ys);
-	}
-	return root;
-}
-
-
-
-var _List_Nil_UNUSED = { $: 0 };
-var _List_Nil = { $: '[]' };
-
-function _List_Cons_UNUSED(hd, tl) { return { $: 1, a: hd, b: tl }; }
-function _List_Cons(hd, tl) { return { $: '::', a: hd, b: tl }; }
-
-
-var _List_cons = F2(_List_Cons);
-
-function _List_fromArray(arr)
-{
-	var out = _List_Nil;
-	for (var i = arr.length; i--; )
-	{
-		out = _List_Cons(arr[i], out);
-	}
-	return out;
-}
-
-function _List_toArray(xs)
-{
-	for (var out = []; xs.b; xs = xs.b) // WHILE_CONS
-	{
-		out.push(xs.a);
-	}
-	return out;
-}
-
-var _List_map2 = F3(function(f, xs, ys)
-{
-	for (var arr = []; xs.b && ys.b; xs = xs.b, ys = ys.b) // WHILE_CONSES
-	{
-		arr.push(A2(f, xs.a, ys.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map3 = F4(function(f, xs, ys, zs)
-{
-	for (var arr = []; xs.b && ys.b && zs.b; xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A3(f, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map4 = F5(function(f, ws, xs, ys, zs)
-{
-	for (var arr = []; ws.b && xs.b && ys.b && zs.b; ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A4(f, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_map5 = F6(function(f, vs, ws, xs, ys, zs)
-{
-	for (var arr = []; vs.b && ws.b && xs.b && ys.b && zs.b; vs = vs.b, ws = ws.b, xs = xs.b, ys = ys.b, zs = zs.b) // WHILE_CONSES
-	{
-		arr.push(A5(f, vs.a, ws.a, xs.a, ys.a, zs.a));
-	}
-	return _List_fromArray(arr);
-});
-
-var _List_sortBy = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		return _Utils_cmp(f(a), f(b));
-	}));
-});
-
-var _List_sortWith = F2(function(f, xs)
-{
-	return _List_fromArray(_List_toArray(xs).sort(function(a, b) {
-		var ord = A2(f, a, b);
-		return ord === $elm$core$Basics$EQ ? 0 : ord === $elm$core$Basics$LT ? -1 : 1;
-	}));
-});
 
 
 
@@ -4938,31 +4938,10 @@ function _Browser_load(url)
 		}
 	}));
 }
+var $elm$core$Basics$EQ = {$: 'EQ'};
+var $elm$core$Basics$GT = {$: 'GT'};
+var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$List$cons = _List_cons;
-var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
-var $elm$core$Array$foldr = F3(
-	function (func, baseCase, _v0) {
-		var tree = _v0.c;
-		var tail = _v0.d;
-		var helper = F2(
-			function (node, acc) {
-				if (node.$ === 'SubTree') {
-					var subTree = node.a;
-					return A3($elm$core$Elm$JsArray$foldr, helper, acc, subTree);
-				} else {
-					var values = node.a;
-					return A3($elm$core$Elm$JsArray$foldr, func, acc, values);
-				}
-			});
-		return A3(
-			$elm$core$Elm$JsArray$foldr,
-			helper,
-			A3($elm$core$Elm$JsArray$foldr, func, baseCase, tail),
-			tree);
-	});
-var $elm$core$Array$toList = function (array) {
-	return A3($elm$core$Array$foldr, $elm$core$List$cons, _List_Nil, array);
-};
 var $elm$core$Dict$foldr = F3(
 	function (func, acc, t) {
 		foldr:
@@ -5015,127 +4994,30 @@ var $elm$core$Set$toList = function (_v0) {
 	var dict = _v0.a;
 	return $elm$core$Dict$keys(dict);
 };
-var $elm$core$Basics$EQ = {$: 'EQ'};
-var $elm$core$Basics$GT = {$: 'GT'};
-var $elm$core$Basics$LT = {$: 'LT'};
-var $elm$core$Basics$identity = function (x) {
-	return x;
-};
-var $author$project$Main$Id = function (a) {
-	return {$: 'Id', a: a};
-};
-var $author$project$Main$TaskComment = function (a) {
-	return {$: 'TaskComment', a: a};
-};
-var $author$project$Main$TaskDescription = function (a) {
-	return {$: 'TaskDescription', a: a};
-};
-var $author$project$Main$TaskName = function (a) {
-	return {$: 'TaskName', a: a};
-};
-var $author$project$Main$Collapsed = {$: 'Collapsed'};
-var $author$project$Main$Incomplete = {$: 'Incomplete'};
-var $author$project$Main$NotEditing = function (a) {
-	return {$: 'NotEditing', a: a};
-};
-var $elm$core$Basics$add = _Basics_add;
-var $author$project$Main$mapId = F2(
-	function (f, _v0) {
-		var id = _v0.a;
-		return $author$project$Main$Id(
-			f(id));
-	});
-var $author$project$Main$incrementId = function (id) {
-	return A2(
-		$author$project$Main$mapId,
-		$elm$core$Basics$add(1),
-		id);
-};
-var $author$project$Main$addTask = F4(
-	function (name, description, comments, model) {
-		return _Utils_update(
-			model,
-			{
-				nextTaskId: $author$project$Main$incrementId(model.nextTaskId),
-				tasks: A2(
-					$elm$core$List$cons,
-					{
-						comments: comments,
-						description: $author$project$Main$NotEditing(description),
-						id: model.nextTaskId,
-						name: $author$project$Main$NotEditing(name),
-						status: $author$project$Main$Incomplete,
-						viewState: $author$project$Main$Collapsed
-					},
-					model.tasks)
+var $elm$core$Elm$JsArray$foldr = _JsArray_foldr;
+var $elm$core$Array$foldr = F3(
+	function (func, baseCase, _v0) {
+		var tree = _v0.c;
+		var tail = _v0.d;
+		var helper = F2(
+			function (node, acc) {
+				if (node.$ === 'SubTree') {
+					var subTree = node.a;
+					return A3($elm$core$Elm$JsArray$foldr, helper, acc, subTree);
+				} else {
+					var values = node.a;
+					return A3($elm$core$Elm$JsArray$foldr, func, acc, values);
+				}
 			});
+		return A3(
+			$elm$core$Elm$JsArray$foldr,
+			helper,
+			A3($elm$core$Elm$JsArray$foldr, func, baseCase, tail),
+			tree);
 	});
-var $elm$core$Basics$apR = F2(
-	function (x, f) {
-		return f(x);
-	});
-var $author$project$Main$init = A4(
-	$author$project$Main$addTask,
-	$author$project$Main$TaskName('take out trash'),
-	$author$project$Main$TaskDescription('milk, eggs, juice'),
-	{
-		buffer: $author$project$Main$TaskComment('4'),
-		savedComments: _List_fromArray(
-			[
-				$author$project$Main$TaskComment('1'),
-				$author$project$Main$TaskComment('2'),
-				$author$project$Main$TaskComment('3')
-			])
-	},
-	A4(
-		$author$project$Main$addTask,
-		$author$project$Main$TaskName('do dishes'),
-		$author$project$Main$TaskDescription('make bed and vacuum'),
-		{
-			buffer: $author$project$Main$TaskComment('4'),
-			savedComments: _List_fromArray(
-				[
-					$author$project$Main$TaskComment('1'),
-					$author$project$Main$TaskComment('2'),
-					$author$project$Main$TaskComment('3')
-				])
-		},
-		A4(
-			$author$project$Main$addTask,
-			$author$project$Main$TaskName('buy groceries'),
-			$author$project$Main$TaskDescription('milk, eggs, juice'),
-			{
-				buffer: $author$project$Main$TaskComment('4'),
-				savedComments: _List_fromArray(
-					[
-						$author$project$Main$TaskComment('1'),
-						$author$project$Main$TaskComment('2'),
-						$author$project$Main$TaskComment('3')
-					])
-			},
-			A4(
-				$author$project$Main$addTask,
-				$author$project$Main$TaskName('clean room'),
-				$author$project$Main$TaskDescription('make bed and vacuum'),
-				{
-					buffer: $author$project$Main$TaskComment('4'),
-					savedComments: _List_fromArray(
-						[
-							$author$project$Main$TaskComment('1'),
-							$author$project$Main$TaskComment('2'),
-							$author$project$Main$TaskComment('3')
-						])
-				},
-				{
-					newTaskComment: {
-						buffer: $author$project$Main$TaskComment(''),
-						savedComments: _List_Nil
-					},
-					newTaskDescription: $author$project$Main$TaskDescription(''),
-					newTaskName: $author$project$Main$TaskName(''),
-					nextTaskId: $author$project$Main$Id(1),
-					tasks: _List_Nil
-				}))));
+var $elm$core$Array$toList = function (array) {
+	return A3($elm$core$Array$foldr, $elm$core$List$cons, _List_Nil, array);
+};
 var $elm$core$Result$Err = function (a) {
 	return {$: 'Err', a: a};
 };
@@ -5158,6 +5040,7 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var $elm$core$Basics$False = {$: 'False'};
+var $elm$core$Basics$add = _Basics_add;
 var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
@@ -5398,6 +5281,10 @@ var $elm$core$Array$Leaf = function (a) {
 };
 var $elm$core$Basics$apL = F2(
 	function (f, x) {
+		return f(x);
+	});
+var $elm$core$Basics$apR = F2(
+	function (x, f) {
 		return f(x);
 	});
 var $elm$core$Basics$eq = _Utils_equal;
@@ -9234,6 +9121,9 @@ var $elm$browser$Debugger$Metadata$encode = function (_v0) {
 				$elm$browser$Debugger$Metadata$encodeTypes(types))
 			]));
 };
+var $elm$core$Basics$identity = function (x) {
+	return x;
+};
 var $elm$core$Task$Perform = function (a) {
 	return {$: 'Perform', a: a};
 };
@@ -10645,26 +10535,158 @@ var $elm$core$Basics$never = function (_v0) {
 		continue never;
 	}
 };
+var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Main$Id = function (a) {
+	return {$: 'Id', a: a};
+};
+var $author$project$Main$TaskComment = function (a) {
+	return {$: 'TaskComment', a: a};
+};
+var $author$project$Main$TaskDescription = function (a) {
+	return {$: 'TaskDescription', a: a};
+};
+var $author$project$Main$TaskName = function (a) {
+	return {$: 'TaskName', a: a};
+};
+var $author$project$Main$Collapsed = {$: 'Collapsed'};
+var $author$project$Main$Incomplete = {$: 'Incomplete'};
+var $author$project$Main$NotEditing = function (a) {
+	return {$: 'NotEditing', a: a};
+};
+var $author$project$Main$Task = F6(
+	function (name, description, id, viewState, status, comments) {
+		return {comments: comments, description: description, id: id, name: name, status: status, viewState: viewState};
+	});
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$map6 = _Json_map6;
+var $author$project$Main$taskDecoder = function () {
+	var decodedValue = function (val) {
+		if (val.$ === 'Ok') {
+			var a = val.a;
+			return a;
+		} else {
+			return '';
+		}
+	};
+	return A7(
+		$elm$json$Json$Decode$map6,
+		$author$project$Main$Task,
+		A2(
+			$elm$json$Json$Decode$andThen,
+			function (name) {
+				return $elm$json$Json$Decode$succeed(
+					$author$project$Main$NotEditing(
+						$author$project$Main$TaskName(name)));
+			},
+			A2(
+				$elm$json$Json$Decode$at,
+				_List_fromArray(
+					['name']),
+				$elm$json$Json$Decode$string)),
+		A2(
+			$elm$json$Json$Decode$andThen,
+			function (description) {
+				return $elm$json$Json$Decode$succeed(
+					$author$project$Main$NotEditing(
+						$author$project$Main$TaskDescription(description)));
+			},
+			A2(
+				$elm$json$Json$Decode$at,
+				_List_fromArray(
+					['description']),
+				$elm$json$Json$Decode$string)),
+		A2(
+			$elm$json$Json$Decode$andThen,
+			function (id) {
+				return $elm$json$Json$Decode$succeed(
+					$author$project$Main$Id(id));
+			},
+			A2(
+				$elm$json$Json$Decode$at,
+				_List_fromArray(
+					['id']),
+				$elm$json$Json$Decode$int)),
+		$elm$json$Json$Decode$succeed($author$project$Main$Collapsed),
+		$elm$json$Json$Decode$succeed($author$project$Main$Incomplete),
+		$elm$json$Json$Decode$succeed(
+			{
+				buffer: $author$project$Main$TaskComment(''),
+				savedComments: _List_Nil
+			}));
+}();
+var $author$project$Main$tasksDecoder = $elm$json$Json$Decode$list($author$project$Main$taskDecoder);
+var $author$project$Main$init = function (localData) {
+	var decodedLocalData = A2($elm$json$Json$Decode$decodeString, $author$project$Main$tasksDecoder, localData);
+	var tasks = function () {
+		if (decodedLocalData.$ === 'Ok') {
+			var decodedTaskList = decodedLocalData.a;
+			return decodedTaskList;
+		} else {
+			return _List_Nil;
+		}
+	}();
+	return _Utils_Tuple2(
+		{
+			newTaskComment: {
+				buffer: $author$project$Main$TaskComment(''),
+				savedComments: _List_Nil
+			},
+			newTaskDescription: $author$project$Main$TaskDescription(''),
+			newTaskName: $author$project$Main$TaskName(''),
+			nextTaskId: $author$project$Main$Id(1),
+			tasks: tasks
+		},
+		$elm$core$Platform$Cmd$none);
+};
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $elm$browser$Browser$sandbox = function (impl) {
-	return _Browser_element(
+var $author$project$Main$subscriptions = function (model) {
+	return $elm$core$Platform$Sub$none;
+};
+var $author$project$Main$addComment = function (task) {
+	return _Utils_update(
+		task,
 		{
-			init: function (_v0) {
-				return _Utils_Tuple2(impl.init, $elm$core$Platform$Cmd$none);
-			},
-			subscriptions: function (_v1) {
-				return $elm$core$Platform$Sub$none;
-			},
-			update: F2(
-				function (msg, model) {
-					return _Utils_Tuple2(
-						A2(impl.update, msg, model),
-						$elm$core$Platform$Cmd$none);
-				}),
-			view: impl.view
+			comments: {
+				buffer: $author$project$Main$TaskComment(''),
+				savedComments: _Utils_ap(
+					task.comments.savedComments,
+					_List_fromArray(
+						[task.comments.buffer]))
+			}
 		});
 };
+var $author$project$Main$mapId = F2(
+	function (f, _v0) {
+		var id = _v0.a;
+		return $author$project$Main$Id(
+			f(id));
+	});
+var $author$project$Main$incrementId = function (id) {
+	return A2(
+		$author$project$Main$mapId,
+		$elm$core$Basics$add(1),
+		id);
+};
+var $author$project$Main$addTask = F4(
+	function (name, description, comments, model) {
+		return _Utils_update(
+			model,
+			{
+				nextTaskId: $author$project$Main$incrementId(model.nextTaskId),
+				tasks: A2(
+					$elm$core$List$cons,
+					{
+						comments: comments,
+						description: $author$project$Main$NotEditing(description),
+						id: model.nextTaskId,
+						name: $author$project$Main$NotEditing(name),
+						status: $author$project$Main$Incomplete,
+						viewState: $author$project$Main$Collapsed
+					},
+					model.tasks)
+			});
+	});
 var $author$project$Main$cancelEditing = function (editable) {
 	if (editable.$ === 'Editing') {
 		var originalValue = editable.a.originalValue;
@@ -10715,6 +10737,7 @@ var $author$project$Main$editTaskForId = F3(
 		};
 		return A2($elm$core$List$map, editTaskIfId, tasks);
 	});
+var $author$project$Main$persistTasks = _Platform_outgoingPort('persistTasks', $elm$core$Basics$identity);
 var $author$project$Main$setCommentBuffer = F2(
 	function (newComment, task) {
 		return _Utils_update(
@@ -10797,6 +10820,56 @@ var $author$project$Main$stopEditingName = function (task) {
 			name: $author$project$Main$stopEditing(task.name)
 		});
 };
+var $author$project$Main$descriptionValue = function (_v0) {
+	var description = _v0.a;
+	return description;
+};
+var $author$project$Main$editableValue = function (value) {
+	if (value.$ === 'NotEditing') {
+		var a = value.a;
+		return a;
+	} else {
+		var originalValue = value.a.originalValue;
+		return originalValue;
+	}
+};
+var $elm$json$Json$Encode$int = _Json_wrap;
+var $author$project$Main$intValue = function (_v0) {
+	var _int = _v0.a;
+	return _int;
+};
+var $author$project$Main$nameValue = function (_v0) {
+	var name = _v0.a;
+	return name;
+};
+var $author$project$Main$taskEncoder = function (task) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'name',
+				$elm$json$Json$Encode$string(
+					$author$project$Main$nameValue(
+						$author$project$Main$editableValue(task.name)))),
+				_Utils_Tuple2(
+				'description',
+				$elm$json$Json$Encode$string(
+					$author$project$Main$descriptionValue(
+						$author$project$Main$editableValue(task.description)))),
+				_Utils_Tuple2(
+				'id',
+				$elm$json$Json$Encode$int(
+					$author$project$Main$intValue(task.id)))
+			]));
+};
+var $author$project$Main$tasksEncoder = function (tasks) {
+	return A2(
+		$elm$json$Json$Encode$list,
+		function (t) {
+			return $author$project$Main$taskEncoder(t);
+		},
+		tasks);
+};
 var $author$project$Main$Complete = {$: 'Complete'};
 var $author$project$Main$toggleStatus = function (task) {
 	var _v0 = task.status;
@@ -10831,129 +10904,170 @@ var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'UserClickedAddTask':
-				return A4(
-					$author$project$Main$addTask,
-					model.newTaskName,
-					model.newTaskDescription,
-					{
-						buffer: $author$project$Main$TaskComment(''),
-						savedComments: _List_Nil
-					},
+				return _Utils_Tuple2(
+					A4(
+						$author$project$Main$addTask,
+						model.newTaskName,
+						model.newTaskDescription,
+						{
+							buffer: $author$project$Main$TaskComment(''),
+							savedComments: _List_Nil
+						},
+						_Utils_update(
+							model,
+							{
+								newTaskDescription: $author$project$Main$TaskDescription(''),
+								newTaskName: $author$project$Main$TaskName('')
+							})),
+					$elm$core$Platform$Cmd$none);
+			case 'UserEditedNewTaskName':
+				var newName = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{newTaskName: newName}),
+					$elm$core$Platform$Cmd$none);
+			case 'UserEditedNewTaskDescription':
+				var newDescription = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{newTaskDescription: newDescription}),
+					$elm$core$Platform$Cmd$none);
+			case 'UserClickedDeleteTask':
+				var taskId = msg.a;
+				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
-							newTaskDescription: $author$project$Main$TaskDescription(''),
-							newTaskName: $author$project$Main$TaskName('')
-						}));
-			case 'UserEditedNewTaskName':
-				var newName = msg.a;
-				return _Utils_update(
-					model,
-					{newTaskName: newName});
-			case 'UserEditedNewTaskDescription':
-				var newDescription = msg.a;
-				return _Utils_update(
-					model,
-					{newTaskDescription: newDescription});
-			case 'UserClickedDeleteTask':
-				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A2($author$project$Main$deleteTask, taskId, model.tasks)
-					});
+							tasks: A2($author$project$Main$deleteTask, taskId, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedToggleTaskViewState':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A2($author$project$Main$toggleTaskViewState, taskId, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A2($author$project$Main$toggleTaskViewState, taskId, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedEditTaskName':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingName, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingName, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedSaveEditTaskName':
 				var taskId = msg.a;
-				return _Utils_update(
+				var updatedModel = _Utils_update(
 					model,
 					{
 						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$stopEditingName, model.tasks)
 					});
+				return _Utils_Tuple2(
+					updatedModel,
+					$author$project$Main$persistTasks(
+						$author$project$Main$tasksEncoder(updatedModel.tasks)));
 			case 'UserClickedCancelEditTaskName':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingName, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingName, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserEditedTaskName':
 				var taskId = msg.a;
 				var editedTaskName = msg.b;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3(
-							$author$project$Main$editTaskForId,
-							taskId,
-							$author$project$Main$setNameBuffer(editedTaskName),
-							model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3(
+								$author$project$Main$editTaskForId,
+								taskId,
+								$author$project$Main$setNameBuffer(editedTaskName),
+								model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedEditTaskDescription':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingDescription, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$startEditingDescription, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedSaveEditTaskDescription':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$stopEditingDescription, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$stopEditingDescription, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedCancelEditTaskDescription':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingDescription, model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$cancelEditingDescription, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserEditedTaskDescription':
 				var taskId = msg.a;
 				var editedTaskDescription = msg.b;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3(
-							$author$project$Main$editTaskForId,
-							taskId,
-							$author$project$Main$setDescriptionBuffer(editedTaskDescription),
-							model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3(
+								$author$project$Main$editTaskForId,
+								taskId,
+								$author$project$Main$setDescriptionBuffer(editedTaskDescription),
+								model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'UserClickedUpdateStatus':
 				var taskId = msg.a;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$toggleStatus, model.tasks)
-					});
-			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$toggleStatus, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
+			case 'UserEditedTaskComment':
 				var taskId = msg.a;
 				var editedTaskComment = msg.b;
-				return _Utils_update(
-					model,
-					{
-						tasks: A3(
-							$author$project$Main$editTaskForId,
-							taskId,
-							$author$project$Main$setCommentBuffer(editedTaskComment),
-							model.tasks)
-					});
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3(
+								$author$project$Main$editTaskForId,
+								taskId,
+								$author$project$Main$setCommentBuffer(editedTaskComment),
+								model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var taskId = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$addComment, model.tasks)
+						}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
@@ -10962,6 +11076,9 @@ var $author$project$Main$UserClickedDeleteTask = function (a) {
 };
 var $author$project$Main$UserClickedUpdateStatus = function (a) {
 	return {$: 'UserClickedUpdateStatus', a: a};
+};
+var $author$project$Main$UserClickedAddComment = function (a) {
+	return {$: 'UserClickedAddComment', a: a};
 };
 var $author$project$Main$UserEditedTaskComment = F2(
 	function (a, b) {
@@ -11008,15 +11125,20 @@ var $author$project$Main$taskCommentsView = function (task) {
 								$author$project$Main$TaskComment(comment));
 						}),
 						$elm$html$Html$Attributes$value(
-						$author$project$Main$commentValue(task.comments.buffer))
+						$author$project$Main$commentValue(task.comments.buffer)),
+						$elm$html$Html$Attributes$class('newCommentInput')
 					]),
 				_List_Nil),
 				A2(
 				$elm$html$Html$button,
-				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('edit')
+						$elm$html$Html$Events$onClick(
+						$author$project$Main$UserClickedAddComment(task.id))
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('add comment')
 					]))
 			]));
 };
@@ -11033,10 +11155,6 @@ var $author$project$Main$UserEditedTaskDescription = F2(
 	function (a, b) {
 		return {$: 'UserEditedTaskDescription', a: a, b: b};
 	});
-var $author$project$Main$descriptionValue = function (_v0) {
-	var description = _v0.a;
-	return description;
-};
 var $author$project$Main$taskDescriptionView = function (task) {
 	var _v0 = task.description;
 	if (_v0.$ === 'Editing') {
@@ -11129,10 +11247,6 @@ var $author$project$Main$UserEditedTaskName = F2(
 	function (a, b) {
 		return {$: 'UserEditedTaskName', a: a, b: b};
 	});
-var $author$project$Main$nameValue = function (_v0) {
-	var name = _v0.a;
-	return name;
-};
 var $author$project$Main$taskNameView = function (task) {
 	var _v0 = task.name;
 	if (_v0.$ === 'Editing') {
@@ -11242,7 +11356,7 @@ var $author$project$Main$taskView = function (task) {
 			]),
 		_List_fromArray(
 			[
-				$elm$html$Html$text('delete')
+				$elm$html$Html$text('delete task')
 			]));
 	var _v0 = task.viewState;
 	if (_v0.$ === 'Collapsed') {
@@ -11437,7 +11551,6 @@ var $author$project$Main$view = function (model) {
 				$author$project$Main$completeTasksView(model)
 			]));
 };
-var $author$project$Main$main = $elm$browser$Browser$sandbox(
-	{init: $author$project$Main$init, update: $author$project$Main$update, view: $author$project$Main$view});
-_Platform_export({'Main':{'init':$author$project$Main$main(
-	$elm$json$Json$Decode$succeed(_Utils_Tuple0))({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"],"UserEditedTaskComment":["Main.Id","Main.TaskComment"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskComment":{"args":[],"tags":{"TaskComment":["String.String"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+var $author$project$Main$main = $elm$browser$Browser$element(
+	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
+_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"],"UserEditedTaskComment":["Main.Id","Main.TaskComment"],"UserClickedAddComment":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskComment":{"args":[],"tags":{"TaskComment":["String.String"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
