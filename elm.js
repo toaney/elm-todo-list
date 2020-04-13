@@ -10549,6 +10549,7 @@ var $author$project$Main$TaskName = function (a) {
 	return {$: 'TaskName', a: a};
 };
 var $author$project$Main$Collapsed = {$: 'Collapsed'};
+var $author$project$Main$Complete = {$: 'Complete'};
 var $author$project$Main$Incomplete = {$: 'Incomplete'};
 var $author$project$Main$NotEditing = function (a) {
 	return {$: 'NotEditing', a: a};
@@ -10607,7 +10608,20 @@ var $author$project$Main$taskDecoder = function () {
 					['id']),
 				$elm$json$Json$Decode$int)),
 		$elm$json$Json$Decode$succeed($author$project$Main$Collapsed),
-		$elm$json$Json$Decode$succeed($author$project$Main$Incomplete),
+		A2(
+			$elm$json$Json$Decode$andThen,
+			function (status) {
+				if (status === 'Complete') {
+					return $elm$json$Json$Decode$succeed($author$project$Main$Complete);
+				} else {
+					return $elm$json$Json$Decode$succeed($author$project$Main$Incomplete);
+				}
+			},
+			A2(
+				$elm$json$Json$Decode$at,
+				_List_fromArray(
+					['status']),
+				$elm$json$Json$Decode$string)),
 		$elm$json$Json$Decode$succeed(
 			{
 				buffer: $author$project$Main$TaskComment(''),
@@ -10820,6 +10834,10 @@ var $author$project$Main$stopEditingName = function (task) {
 			name: $author$project$Main$stopEditing(task.name)
 		});
 };
+var $author$project$Main$commentValue = function (_v0) {
+	var comment = _v0.a;
+	return comment;
+};
 var $author$project$Main$descriptionValue = function (_v0) {
 	var description = _v0.a;
 	return description;
@@ -10842,6 +10860,13 @@ var $author$project$Main$nameValue = function (_v0) {
 	var name = _v0.a;
 	return name;
 };
+var $author$project$Main$statusValue = function (status) {
+	if (status.$ === 'Complete') {
+		return 'Complete';
+	} else {
+		return 'Incomplete';
+	}
+};
 var $author$project$Main$taskEncoder = function (task) {
 	return $elm$json$Json$Encode$object(
 		_List_fromArray(
@@ -10859,7 +10884,26 @@ var $author$project$Main$taskEncoder = function (task) {
 				_Utils_Tuple2(
 				'id',
 				$elm$json$Json$Encode$int(
-					$author$project$Main$intValue(task.id)))
+					$author$project$Main$intValue(task.id))),
+				_Utils_Tuple2(
+				'status',
+				$elm$json$Json$Encode$string(
+					$author$project$Main$statusValue(task.status))),
+				_Utils_Tuple2(
+				'comments',
+				$elm$json$Json$Encode$object(
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							'savedComments',
+							A2(
+								$elm$json$Json$Encode$list,
+								function (c) {
+									return $elm$json$Json$Encode$string(
+										$author$project$Main$commentValue(c));
+								},
+								task.comments.savedComments))
+						])))
 			]));
 };
 var $author$project$Main$tasksEncoder = function (tasks) {
@@ -10870,7 +10914,6 @@ var $author$project$Main$tasksEncoder = function (tasks) {
 		},
 		tasks);
 };
-var $author$project$Main$Complete = {$: 'Complete'};
 var $author$project$Main$toggleStatus = function (task) {
 	var _v0 = task.status;
 	if (_v0.$ === 'Complete') {
@@ -11084,10 +11127,6 @@ var $author$project$Main$UserEditedTaskComment = F2(
 	function (a, b) {
 		return {$: 'UserEditedTaskComment', a: a, b: b};
 	});
-var $author$project$Main$commentValue = function (_v0) {
-	var comment = _v0.a;
-	return comment;
-};
 var $author$project$Main$taskCommentsView = function (task) {
 	return A2(
 		$elm$html$Html$div,

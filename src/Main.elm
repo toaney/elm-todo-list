@@ -72,13 +72,17 @@ taskEncoder task =
         [ ( "name", Encode.string (nameValue (editableValue task.name)) )
         , ( "description", Encode.string (descriptionValue (editableValue task.description)) )
         , ( "id", Encode.int (intValue task.id) )
+        , ( "status", Encode.string (statusValue task.status) )
+        , ( "comments"
+          , Encode.object
+                [ ( "savedComments"
+                  , Encode.list
+                        (\c -> Encode.string (commentValue c))
+                        task.comments.savedComments
+                  )
+                ]
+          )
         ]
-
-
-
--- nameValue : TaskName -> String
--- nameValue (TaskName name) =
---     name
 
 
 tasksEncoder : List Task -> Encode.Value
@@ -215,8 +219,23 @@ taskDecoder =
                 )
         )
         (Decoder.succeed Collapsed)
-        (Decoder.succeed Incomplete)
+        -- (Decoder.succeed Incomplete)
+        (Decoder.at [ "status" ] Decoder.string
+            |> Decoder.andThen
+                (\status ->
+                    case status of
+                        "Complete" ->
+                            Decoder.succeed Complete
+
+                        _ ->
+                            Decoder.succeed Incomplete
+                )
+        )
         (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+
+
+
+-- (Decoder.at [ "savedComments" ] Decoder.)
 
 
 tasksDecoder : Decoder.Decoder (List Task)
@@ -456,10 +475,14 @@ commentValue (TaskComment comment) =
     comment
 
 
+statusValue : TaskStatus -> String
+statusValue status =
+    case status of
+        Complete ->
+            "Complete"
 
--- { model
---     | tasks = updateTaskDescriptionBuffer taskId model.tasks
--- }
+        Incomplete ->
+            "Incomplete"
 
 
 deleteTask : Id -> List Task -> List Task

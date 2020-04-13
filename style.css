@@ -41,8 +41,8 @@ body, input{
     display: flex;
     justify-content: space-between;
     align-content: flex-start;
-    background-color:rgb(126, 206, 255);
-    border: 2px solid rgb(126, 206, 255);
+    background-color: #FF7E7E;
+    border: 2px solid #FF7E7E;
     border-radius: 4px;
     box-sizing: border-box;
     padding: 5px;
@@ -55,7 +55,7 @@ body, input{
     display: flex;
     justify-content: space-between;
     align-content: flex-end;
-    border: 2px solid rgb(126, 206, 255);
+    border: 2px solid #FF7E7E;
     border-radius: 4px;
     box-sizing: border-box;
     padding: 5px;
@@ -66,21 +66,21 @@ body, input{
 }
 
 .incomplete-tasks .task-name {
-    background-color: rgb(126, 206, 255);
-    border: 2px solid rgb(126, 206, 255);
+    background-color: #FF7E7E;
+    border: 2px solid #FF7E7E;
 }
 
 .incomplete-tasks .task-description {
-    border: 2px solid rgb(126, 206, 255);
+    border: 2px solid #FF7E7E;
 }
 
 .complete-tasks .task-name {
-    background-color: rgb(79, 135, 255);
-    border: 2px solid rgb(79, 135, 255);
+    background-color: #24EEA5;
+    border: 2px solid #24EEA5;
 }
 
 .complete-tasks .task-description {
-    border: 2px solid rgb(79, 135, 255);
+    border: 2px solid #24EEA5;
 } 
 
 .newCommentInput {
@@ -138,19 +138,19 @@ body, input{
 }
 
 .incomplete-tasks .task-name {
-    background-color: rgb(126, 206, 255);
-    border: 2px solid rgb(126, 206, 255);
+    background-color: #FF7E7E;
+    border: 2px solid #FF7E7E;
 }
 
 .incomplete-tasks .task-description {
-    border: 2px solid rgb(126, 206, 255);
+    border: 2px solid #FF7E7E;
 }
 
 .complete-tasks .task-name {
-    background-color: rgb(79, 135, 255);
-    border: 2px solid rgb(79, 135, 255);
+    background-color: #24EEA5;
+    border: 2px solid #24EEA5;
 }
 
 .complete-tasks .task-description {
-    border: 2px solid rgb(79, 135, 255);
+    border: 2px solid #24EEA5;
 }  */
