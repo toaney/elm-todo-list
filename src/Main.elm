@@ -187,16 +187,15 @@ init localData =
 
 
 taskDecoder =
-    let
-        -- decodedValue : Decoder.Decoder a
-        decodedValue val =
-            case val of
-                Ok a ->
-                    a
-
-                Err _ ->
-                    ""
-    in
+    -- let
+    --     -- decodedValue : Decoder.Decoder a
+    --     decodedValue val =
+    --         case val of
+    --             Ok a ->
+    --                 a
+    --             Err _ ->
+    --                 ""
+    -- in
     Decoder.map6 Task
         (Decoder.at [ "name" ] Decoder.string
             |> Decoder.andThen
@@ -231,11 +230,62 @@ taskDecoder =
                             Decoder.succeed Incomplete
                 )
         )
-        (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+        -- (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+        (Decoder.at [ "comments" ]
+            commentListDecoder
+         -- (Decoder.map2 CommentList
+         --     (Decoder.at [ "savedComments" ]
+         --         -- (Decoder.list commentDecoder)
+         --         (Decoder.succeed [])
+         --      -- |> Decoder.andThen
+         --      --     (\comment ->
+         --      --         Decoder.succeed (TaskComment comment)
+         --      --     )
+         --      -- (Decoder.at [ "name" ] Decoder.string
+         --      --     |> Decoder.andThen
+         --      --         (\name ->
+         --      --             Decoder.succeed (NotEditing (TaskName name))
+         --      --         )
+         --      -- )
+         --     )
+         --     (Decoder.at
+         --         [ "buffer" ]
+         --         (Decoder.succeed (TaskComment ""))
+         --     )
+         --  -- (Decoder.succeed { buffer = TaskComment "" })
+         -- )
+        )
+
+
+commentDecoder : Decoder.Decoder TaskComment
+commentDecoder =
+    Decoder.string
+        |> Decoder.andThen
+            (\comment ->
+                Decoder.succeed (TaskComment comment)
+            )
+
+
+commentsDecoder : Decoder.Decoder (List TaskComment)
+commentsDecoder =
+    Decoder.list commentDecoder
+
+
+commentListDecoder : Decoder.Decoder CommentList
+commentListDecoder =
+    Decoder.map2 CommentList
+        -- (Decoder.succeed [ TaskComment "", TaskComment "" ])
+        -- (Decoder.list commentDecoder)
+        (Decoder.at [ "savedComments" ]
+            commentsDecoder
+        )
+        (Decoder.succeed (TaskComment ""))
 
 
 
--- (Decoder.at [ "savedComments" ] Decoder.)
+-- (Decoder.succeed { savedComments = [], buffer = TaskComment "" })
+-- (Decoder.succeed (NotEditing (TaskDescription (Decoder.at [ "description" ] Decoder.string))))
+-- , newTaskComment = { savedComments = [], buffer = TaskComment "" }
 
 
 tasksDecoder : Decoder.Decoder (List Task)

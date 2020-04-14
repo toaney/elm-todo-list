@@ -10559,75 +10559,87 @@ var $author$project$Main$Task = F6(
 		return {comments: comments, description: description, id: id, name: name, status: status, viewState: viewState};
 	});
 var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $author$project$Main$CommentList = F2(
+	function (savedComments, buffer) {
+		return {buffer: buffer, savedComments: savedComments};
+	});
+var $author$project$Main$commentDecoder = A2(
+	$elm$json$Json$Decode$andThen,
+	function (comment) {
+		return $elm$json$Json$Decode$succeed(
+			$author$project$Main$TaskComment(comment));
+	},
+	$elm$json$Json$Decode$string);
+var $author$project$Main$commentsDecoder = $elm$json$Json$Decode$list($author$project$Main$commentDecoder);
+var $author$project$Main$commentListDecoder = A3(
+	$elm$json$Json$Decode$map2,
+	$author$project$Main$CommentList,
+	A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['savedComments']),
+		$author$project$Main$commentsDecoder),
+	$elm$json$Json$Decode$succeed(
+		$author$project$Main$TaskComment('')));
 var $elm$json$Json$Decode$map6 = _Json_map6;
-var $author$project$Main$taskDecoder = function () {
-	var decodedValue = function (val) {
-		if (val.$ === 'Ok') {
-			var a = val.a;
-			return a;
-		} else {
-			return '';
-		}
-	};
-	return A7(
-		$elm$json$Json$Decode$map6,
-		$author$project$Main$Task,
+var $author$project$Main$taskDecoder = A7(
+	$elm$json$Json$Decode$map6,
+	$author$project$Main$Task,
+	A2(
+		$elm$json$Json$Decode$andThen,
+		function (name) {
+			return $elm$json$Json$Decode$succeed(
+				$author$project$Main$NotEditing(
+					$author$project$Main$TaskName(name)));
+		},
 		A2(
-			$elm$json$Json$Decode$andThen,
-			function (name) {
-				return $elm$json$Json$Decode$succeed(
-					$author$project$Main$NotEditing(
-						$author$project$Main$TaskName(name)));
-			},
-			A2(
-				$elm$json$Json$Decode$at,
-				_List_fromArray(
-					['name']),
-				$elm$json$Json$Decode$string)),
+			$elm$json$Json$Decode$at,
+			_List_fromArray(
+				['name']),
+			$elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$andThen,
+		function (description) {
+			return $elm$json$Json$Decode$succeed(
+				$author$project$Main$NotEditing(
+					$author$project$Main$TaskDescription(description)));
+		},
 		A2(
-			$elm$json$Json$Decode$andThen,
-			function (description) {
-				return $elm$json$Json$Decode$succeed(
-					$author$project$Main$NotEditing(
-						$author$project$Main$TaskDescription(description)));
-			},
-			A2(
-				$elm$json$Json$Decode$at,
-				_List_fromArray(
-					['description']),
-				$elm$json$Json$Decode$string)),
+			$elm$json$Json$Decode$at,
+			_List_fromArray(
+				['description']),
+			$elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$andThen,
+		function (id) {
+			return $elm$json$Json$Decode$succeed(
+				$author$project$Main$Id(id));
+		},
 		A2(
-			$elm$json$Json$Decode$andThen,
-			function (id) {
-				return $elm$json$Json$Decode$succeed(
-					$author$project$Main$Id(id));
-			},
-			A2(
-				$elm$json$Json$Decode$at,
-				_List_fromArray(
-					['id']),
-				$elm$json$Json$Decode$int)),
-		$elm$json$Json$Decode$succeed($author$project$Main$Collapsed),
+			$elm$json$Json$Decode$at,
+			_List_fromArray(
+				['id']),
+			$elm$json$Json$Decode$int)),
+	$elm$json$Json$Decode$succeed($author$project$Main$Collapsed),
+	A2(
+		$elm$json$Json$Decode$andThen,
+		function (status) {
+			if (status === 'Complete') {
+				return $elm$json$Json$Decode$succeed($author$project$Main$Complete);
+			} else {
+				return $elm$json$Json$Decode$succeed($author$project$Main$Incomplete);
+			}
+		},
 		A2(
-			$elm$json$Json$Decode$andThen,
-			function (status) {
-				if (status === 'Complete') {
-					return $elm$json$Json$Decode$succeed($author$project$Main$Complete);
-				} else {
-					return $elm$json$Json$Decode$succeed($author$project$Main$Incomplete);
-				}
-			},
-			A2(
-				$elm$json$Json$Decode$at,
-				_List_fromArray(
-					['status']),
-				$elm$json$Json$Decode$string)),
-		$elm$json$Json$Decode$succeed(
-			{
-				buffer: $author$project$Main$TaskComment(''),
-				savedComments: _List_Nil
-			}));
-}();
+			$elm$json$Json$Decode$at,
+			_List_fromArray(
+				['status']),
+			$elm$json$Json$Decode$string)),
+	A2(
+		$elm$json$Json$Decode$at,
+		_List_fromArray(
+			['comments']),
+		$author$project$Main$commentListDecoder));
 var $author$project$Main$tasksDecoder = $elm$json$Json$Decode$list($author$project$Main$taskDecoder);
 var $author$project$Main$init = function (localData) {
 	var decodedLocalData = A2($elm$json$Json$Decode$decodeString, $author$project$Main$tasksDecoder, localData);
