@@ -35,12 +35,16 @@ port module Main exposing (Id(..), Task, TaskDescription(..), TaskName(..), Task
 
 -}
 
+-- import Date
+
 import Browser
 import Html
 import Html.Attributes as HA
 import Html.Events as HE
 import Json.Decode as Decoder
 import Json.Encode as Encode
+import Task
+import Time
 
 
 
@@ -53,6 +57,8 @@ type alias Model =
     , newTaskComment : CommentList
     , tasks : List Task
     , nextTaskId : Id
+    , zone : Time.Zone
+    , time : Time.Posix
     }
 
 
@@ -90,6 +96,10 @@ tasksEncoder tasks =
     Encode.list
         (\t -> taskEncoder t)
         tasks
+
+
+type alias Time =
+    Float
 
 
 type Id
@@ -160,12 +170,16 @@ init localData =
       , newTaskComment = { savedComments = [], buffer = TaskComment "" }
       , tasks = tasks
       , nextTaskId = Id 1
+      , zone = Time.utc
+      , time = Time.millisToPosix 0
       }
-    , Cmd.none
+    , Task.perform AdjustTimeZone Time.here
     )
 
 
 
+-- , zone : Time.Zone
+-- , time : Time.Posix
 -- taskDecoder =
 --     let
 --         -- decodedValue : Decoder.Decoder a
@@ -330,6 +344,8 @@ type Msg
     | UserClickedUpdateStatus Id
     | UserEditedTaskComment Id TaskComment
     | UserClickedAddComment Id
+    | Tick Time.Posix
+    | AdjustTimeZone Time.Zone
 
 
 port persistTasks : Encode.Value -> Cmd msg
@@ -459,6 +475,16 @@ update msg model =
             ( { model
                 | tasks = editTaskForId taskId addComment model.tasks
               }
+            , Cmd.none
+            )
+
+        Tick newTime ->
+            ( { model | time = newTime }
+            , Cmd.none
+            )
+
+        AdjustTimeZone newZone ->
+            ( { model | zone = newZone }
             , Cmd.none
             )
 
@@ -805,6 +831,16 @@ css path =
 
 view : Model -> Html.Html Msg
 view model =
+    let
+        hour =
+            String.fromInt (Time.toHour model.zone model.time)
+
+        minute =
+            String.fromInt (Time.toMinute model.zone model.time)
+
+        second =
+            String.fromInt (Time.toSecond model.zone model.time)
+    in
     -- Html.div []
     --     (newTaskView model
     --         :: List.map taskView model.tasks
@@ -823,6 +859,8 @@ view model =
         --     , Html.button [ ] [ Html.text "add" ]
         --     , Html.button [ ] [ Html.text "add" ]
         --     ]
+        -- , Html.h2 [] [ Html.text Time ]
+        , Html.h1 [] [ Html.text (hour ++ ":" ++ minute ++ ":" ++ second) ]
         ]
 
 
@@ -1008,7 +1046,8 @@ taskCommentsView task =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    -- Sub.none
+    Time.every 1000 Tick
 
 
 main =

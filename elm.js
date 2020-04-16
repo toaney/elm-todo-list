@@ -4938,6 +4938,52 @@ function _Browser_load(url)
 		}
 	}));
 }
+
+
+
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2($elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = $elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = $elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
@@ -10536,6 +10582,9 @@ var $elm$core$Basics$never = function (_v0) {
 	}
 };
 var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Main$AdjustTimeZone = function (a) {
+	return {$: 'AdjustTimeZone', a: a};
+};
 var $author$project$Main$Id = function (a) {
 	return {$: 'Id', a: a};
 };
@@ -10548,6 +10597,22 @@ var $author$project$Main$TaskDescription = function (a) {
 var $author$project$Main$TaskName = function (a) {
 	return {$: 'TaskName', a: a};
 };
+var $elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var $elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var $elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var $elm$time$Time$customZone = $elm$time$Time$Zone;
+var $elm$time$Time$here = _Time_here(_Utils_Tuple0);
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $author$project$Main$Collapsed = {$: 'Collapsed'};
 var $author$project$Main$Complete = {$: 'Complete'};
 var $author$project$Main$Incomplete = {$: 'Incomplete'};
@@ -10641,6 +10706,7 @@ var $author$project$Main$taskDecoder = A7(
 			['comments']),
 		$author$project$Main$commentListDecoder));
 var $author$project$Main$tasksDecoder = $elm$json$Json$Decode$list($author$project$Main$taskDecoder);
+var $elm$time$Time$utc = A2($elm$time$Time$Zone, 0, _List_Nil);
 var $author$project$Main$init = function (localData) {
 	var decodedLocalData = A2($elm$json$Json$Decode$decodeString, $author$project$Main$tasksDecoder, localData);
 	var tasks = function () {
@@ -10660,14 +10726,184 @@ var $author$project$Main$init = function (localData) {
 			newTaskDescription: $author$project$Main$TaskDescription(''),
 			newTaskName: $author$project$Main$TaskName(''),
 			nextTaskId: $author$project$Main$Id(1),
-			tasks: tasks
+			tasks: tasks,
+			time: $elm$time$Time$millisToPosix(0),
+			zone: $elm$time$Time$utc
 		},
-		$elm$core$Platform$Cmd$none);
+		A2($elm$core$Task$perform, $author$project$Main$AdjustTimeZone, $elm$time$Time$here));
 };
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$Tick = function (a) {
+	return {$: 'Tick', a: a};
+};
+var $elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
+	});
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
+	});
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
 var $author$project$Main$subscriptions = function (model) {
-	return $elm$core$Platform$Sub$none;
+	return A2($elm$time$Time$every, 1000, $author$project$Main$Tick);
 };
 var $author$project$Main$addComment = function (task) {
 	return _Utils_update(
@@ -11114,7 +11350,7 @@ var $author$project$Main$update = F2(
 								model.tasks)
 						}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'UserClickedAddComment':
 				var taskId = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -11122,6 +11358,20 @@ var $author$project$Main$update = F2(
 						{
 							tasks: A3($author$project$Main$editTaskForId, taskId, $author$project$Main$addComment, model.tasks)
 						}),
+					$elm$core$Platform$Cmd$none);
+			case 'Tick':
+				var newTime = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{time: newTime}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var newZone = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{zone: newZone}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -11578,7 +11828,85 @@ var $author$project$Main$newTaskView = function (model) {
 					]))
 			]));
 };
+var $elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return $elm$core$Basics$floor(numerator / denominator);
+	});
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
+var $elm$time$Time$toAdjustedMinutesHelp = F3(
+	function (defaultOffset, posixMinutes, eras) {
+		toAdjustedMinutesHelp:
+		while (true) {
+			if (!eras.b) {
+				return posixMinutes + defaultOffset;
+			} else {
+				var era = eras.a;
+				var olderEras = eras.b;
+				if (_Utils_cmp(era.start, posixMinutes) < 0) {
+					return posixMinutes + era.offset;
+				} else {
+					var $temp$defaultOffset = defaultOffset,
+						$temp$posixMinutes = posixMinutes,
+						$temp$eras = olderEras;
+					defaultOffset = $temp$defaultOffset;
+					posixMinutes = $temp$posixMinutes;
+					eras = $temp$eras;
+					continue toAdjustedMinutesHelp;
+				}
+			}
+		}
+	});
+var $elm$time$Time$toAdjustedMinutes = F2(
+	function (_v0, time) {
+		var defaultOffset = _v0.a;
+		var eras = _v0.b;
+		return A3(
+			$elm$time$Time$toAdjustedMinutesHelp,
+			defaultOffset,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				60000),
+			eras);
+	});
+var $elm$time$Time$toHour = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			24,
+			A2(
+				$elm$time$Time$flooredDiv,
+				A2($elm$time$Time$toAdjustedMinutes, zone, time),
+				60));
+	});
+var $elm$time$Time$toMinute = F2(
+	function (zone, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2($elm$time$Time$toAdjustedMinutes, zone, time));
+	});
+var $elm$time$Time$toSecond = F2(
+	function (_v0, time) {
+		return A2(
+			$elm$core$Basics$modBy,
+			60,
+			A2(
+				$elm$time$Time$flooredDiv,
+				$elm$time$Time$posixToMillis(time),
+				1000));
+	});
 var $author$project$Main$view = function (model) {
+	var second = $elm$core$String$fromInt(
+		A2($elm$time$Time$toSecond, model.zone, model.time));
+	var minute = $elm$core$String$fromInt(
+		A2($elm$time$Time$toMinute, model.zone, model.time));
+	var hour = $elm$core$String$fromInt(
+		A2($elm$time$Time$toHour, model.zone, model.time));
 	return A2(
 		$elm$html$Html$div,
 		_List_fromArray(
@@ -11599,9 +11927,16 @@ var $author$project$Main$view = function (model) {
 					])),
 				$author$project$Main$newTaskView(model),
 				$author$project$Main$incompleteTasksView(model),
-				$author$project$Main$completeTasksView(model)
+				$author$project$Main$completeTasksView(model),
+				A2(
+				$elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(hour + (':' + (minute + (':' + second))))
+					]))
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
 	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
-_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"],"UserEditedTaskComment":["Main.Id","Main.TaskComment"],"UserClickedAddComment":["Main.Id"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Main.TaskComment":{"args":[],"tags":{"TaskComment":["String.String"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
+_Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$string)({"versions":{"elm":"0.19.1"},"types":{"message":"Main.Msg","aliases":{"Time.Era":{"args":[],"type":"{ start : Basics.Int, offset : Basics.Int }"}},"unions":{"Main.Msg":{"args":[],"tags":{"UserClickedAddTask":[],"UserEditedNewTaskName":["Main.TaskName"],"UserEditedNewTaskDescription":["Main.TaskDescription"],"UserClickedDeleteTask":["Main.Id"],"UserClickedToggleTaskViewState":["Main.Id"],"UserClickedEditTaskName":["Main.Id"],"UserClickedSaveEditTaskName":["Main.Id"],"UserClickedCancelEditTaskName":["Main.Id"],"UserEditedTaskName":["Main.Id","Main.TaskName"],"UserClickedEditTaskDescription":["Main.Id"],"UserClickedSaveEditTaskDescription":["Main.Id"],"UserClickedCancelEditTaskDescription":["Main.Id"],"UserEditedTaskDescription":["Main.Id","Main.TaskDescription"],"UserClickedUpdateStatus":["Main.Id"],"UserEditedTaskComment":["Main.Id","Main.TaskComment"],"UserClickedAddComment":["Main.Id"],"Tick":["Time.Posix"],"AdjustTimeZone":["Time.Zone"]}},"Main.Id":{"args":[],"tags":{"Id":["Basics.Int"]}},"Time.Posix":{"args":[],"tags":{"Posix":["Basics.Int"]}},"Main.TaskComment":{"args":[],"tags":{"TaskComment":["String.String"]}},"Main.TaskDescription":{"args":[],"tags":{"TaskDescription":["String.String"]}},"Main.TaskName":{"args":[],"tags":{"TaskName":["String.String"]}},"Time.Zone":{"args":[],"tags":{"Zone":["Basics.Int","List.List Time.Era"]}},"Basics.Int":{"args":[],"tags":{"Int":[]}},"List.List":{"args":["a"],"tags":{}},"String.String":{"args":[],"tags":{"String":[]}}}}})}});}(this));
